@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PS5 Gateway</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --text: #1b1f27; --muted: #667085; --line: #e3e6eb;
+    --ok: #12805c; --okbg: #dff5ec; --bad: #b42318; --badbg: #fde7e4; --warn: #b54708; --warnbg: #fef0d9; --idle: #475467; --idlebg: #eaecf0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #12151b; --card: #1b2029; --text: #e8ebf1; --muted: #98a2b3; --line: #2b323f;
+      --ok: #4fd1a1; --okbg: #11392c; --bad: #ff8a80; --badbg: #432020; --warn: #f5b45a; --warnbg: #40300f; --idle: #c0c7d2; --idlebg: #2a303b;
+    }
+  }
+  [hidden] { display: none !important; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; padding-inline: 16px; }
+  main { max-width: 900px; margin: 0 auto; padding-block: 20px 40px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  h1 { font-size: 18px; margin: 0; font-weight: 650; }
+  select { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+  .pill { display: inline-block; padding: 6px 14px; border-radius: 999px; font-weight: 650; font-size: 15px; }
+  .live { background: var(--okbg); color: var(--ok); }
+  .idle { background: var(--idlebg); color: var(--idle); }
+  .bad  { background: var(--badbg); color: var(--bad); }
+  .warn { background: var(--warnbg); color: var(--warn); }
+  .banner { margin: 12px 0; padding: 10px 14px; border-radius: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 14px 0; }
+  .tile, .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .tile .v { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .tile .k { color: var(--muted); font-size: 12px; }
+  .card { margin-top: 12px; }
+  .card h2 { font-size: 13px; margin: 0 0 8px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  tr:last-child td { border-bottom: 0; }
+  button { font: inherit; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  code { background: var(--idlebg); padding: 2px 6px; border-radius: 6px; user-select: all; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { padding: 5px 0; border-bottom: 1px solid var(--line); }
+  li:last-child { border-bottom: 0; }
+  .t { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px 24px; }
+  .row div span { color: var(--muted); }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>PS5 Gateway <span id="dry" class="pill idle" hidden>dry mode</span></h1>
+    <select id="lang" aria-label="Language"></select>
+  </header>
+  <div id="state" class="pill idle"></div>
+  <div id="banner" class="banner bad" hidden></div>
+
+  <div class="grid">
+    <div class="tile"><div class="v" id="fps">–</div><div class="k" data-i="fps"></div></div>
+    <div class="tile"><div class="v" id="br">–</div><div class="k" data-i="bitrate"></div></div>
+    <div class="tile"><div class="v" id="speed">–</div><div class="k" data-i="speed"></div></div>
+    <div class="tile"><div class="v" id="drop">–</div><div class="k" data-i="drops"></div></div>
+    <div class="tile"><div class="v" id="up">–</div><div class="k" data-i="uptime"></div></div>
+  </div>
+
+  <div class="card">
+    <h2 data-i="obsTitle"></h2>
+    <div data-i="obsText"></div>
+    <div style="margin-top:8px"><code id="relay"></code></div>
+    <div class="muted" style="margin-top:8px" data-i="obsNote"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-i="services"></h2>
+    <div class="scroll"><table>
+      <thead><tr><th data-i="thService"></th><th data-i="thState"></th><th>PID</th><th data-i="thRunning"></th><th data-i="thRestarts"></th><th data-i="thLastExit"></th><th></th></tr></thead>
+      <tbody id="svc"></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h2 data-i="network"></h2>
+    <div class="row" id="net"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-i="events"></h2>
+    <ul id="events"></ul>
+  </div>
+</main>
+<script>
+const TOKEN = "__TOKEN__";
+const $ = (id) => document.getElementById(id);
+
+// ---------- translations: add a language by adding a block here ----------
+const LANGS = { en: "English", ru: "Русский", uk: "Українська", de: "Deutsch", es: "Español" };
+const I18N = {
+  en: {
+    connecting: "connecting…", noLink: "no connection to the orchestrator", svcDown: "A service is not running",
+    live: "PS5 broadcasting → OBS", starting: "PS5 broadcasting, relay is starting…", idle: "PS5 is not broadcasting",
+    fps: "FPS", bitrate: "Bitrate, kbps", speed: "Speed (1.0 = realtime)", drops: "Dropped / duplicated frames", uptime: "Broadcast uptime",
+    obsTitle: "OBS source", obsText: "In OBS add a Media Source (uncheck \"Local File\") with this input, or run node scripts\\make-obs-scenes.mjs:",
+    obsNote: "The gateway only delivers the PS5 picture to this address. Nothing goes to Twitch until you press Start Streaming in OBS.",
+    services: "Services", thService: "Service", thState: "State", thRunning: "Running", thRestarts: "Restarts", thLastExit: "Last exit",
+    network: "Network", events: "Events", none: "none yet", restart: "Restart",
+    dns: "DNS (CoreDNS)", ingest: "RTMP ingest (MediaMTX)", relay: "Relay to OBS (FFmpeg, no re-encoding)",
+    running: "running", crashed: "crashed, restarting", stopped: "stopped",
+    ip: "The PC address changed (expected {0}). The PS5's DNS no longer points at this PC.",
+    pc: "PC", notOnIface: "not on any interface!", ps5: "PS5", ps5NotSet: "PS5_IP not set", ping: "answers ping", noPing: "does not answer ping",
+    dnsRedirect: "DNS redirect", lookups: "lookups, last", lastLookup: "Last DNS lookup by the PS5",
+    confirmRestart: "Restarting {0} will interrupt the current PS5 broadcast. Continue?",
+    "ev:started": "Orchestrator started", "ev:ps5on": "PS5 started broadcasting", "ev:ps5off": "PS5 stopped broadcasting",
+    "ev:restart": "Manual restart: {0}", "ev:ipchg": "PC address changed! Expected {0}, now {1}. Update the PS5's DNS and restart the gateway.",
+  },
+  ru: {
+    connecting: "подключение…", noLink: "нет связи с оркестратором", svcDown: "Сервис не работает",
+    live: "PS5 вещает → OBS", starting: "PS5 вещает, запускается пересылка…", idle: "PS5 не вещает",
+    fps: "Кадров/с", bitrate: "Битрейт, кбит/с", speed: "Скорость (1.0 = реальное время)", drops: "Потеряно / продублировано кадров", uptime: "Длительность трансляции",
+    obsTitle: "Источник для OBS", obsText: "В OBS добавьте Media Source (снимите «Локальный файл») с этим адресом или выполните node scripts\\make-obs-scenes.mjs:",
+    obsNote: "Шлюз только доставляет картинку PS5 на этот адрес. На Twitch ничего не уходит, пока вы не нажмёте «Начать трансляцию» в OBS.",
+    services: "Сервисы", thService: "Сервис", thState: "Состояние", thRunning: "Работает", thRestarts: "Перезапуски", thLastExit: "Последний выход",
+    network: "Сеть", events: "События", none: "пока нет", restart: "Перезапуск",
+    dns: "DNS (CoreDNS)", ingest: "Приём RTMP (MediaMTX)", relay: "Пересылка в OBS (FFmpeg, без перекодирования)",
+    running: "работает", crashed: "упал, перезапуск", stopped: "остановлен",
+    ip: "Адрес ПК изменился (ожидался {0}). DNS на PS5 больше не указывает на этот ПК.",
+    pc: "ПК", notOnIface: "нет ни на одном интерфейсе!", ps5: "PS5", ps5NotSet: "PS5_IP не задан", ping: "отвечает на ping", noPing: "не отвечает на ping",
+    dnsRedirect: "Подмена DNS", lookups: "запросов, последний", lastLookup: "Последний DNS-запрос PS5",
+    confirmRestart: "Перезапуск «{0}» прервёт текущую трансляцию PS5. Продолжить?",
+    "ev:started": "Оркестратор запущен", "ev:ps5on": "PS5 начала трансляцию", "ev:ps5off": "PS5 остановила трансляцию",
+    "ev:restart": "Ручной перезапуск: {0}", "ev:ipchg": "Адрес ПК изменился! Ожидался {0}, сейчас {1}. Обновите DNS на PS5 и перезапустите шлюз.",
+  },
+  uk: {
+    connecting: "підключення…", noLink: "немає зв'язку з оркестратором", svcDown: "Сервіс не працює",
+    live: "PS5 веде трансляцію → OBS", starting: "PS5 веде трансляцію, запускається пересилання…", idle: "PS5 не веде трансляцію",
+    fps: "Кадрів/с", bitrate: "Бітрейт, кбіт/с", speed: "Швидкість (1.0 = реальний час)", drops: "Втрачено / продубльовано кадрів", uptime: "Тривалість трансляції",
+    obsTitle: "Джерело для OBS", obsText: "В OBS додайте Media Source (зніміть «Локальний файл») з цією адресою або виконайте node scripts\\make-obs-scenes.mjs:",
+    obsNote: "Шлюз лише доставляє картинку PS5 на цю адресу. На Twitch нічого не йде, доки ви не натиснете «Почати трансляцію» в OBS.",
+    services: "Сервіси", thService: "Сервіс", thState: "Стан", thRunning: "Працює", thRestarts: "Перезапуски", thLastExit: "Останній вихід",
+    network: "Мережа", events: "Події", none: "поки немає", restart: "Перезапуск",
+    dns: "DNS (CoreDNS)", ingest: "Прийом RTMP (MediaMTX)", relay: "Пересилання в OBS (FFmpeg, без перекодування)",
+    running: "працює", crashed: "впав, перезапуск", stopped: "зупинено",
+    ip: "Адреса ПК змінилася (очікувалась {0}). DNS на PS5 більше не вказує на цей ПК.",
+    pc: "ПК", notOnIface: "немає на жодному інтерфейсі!", ps5: "PS5", ps5NotSet: "PS5_IP не задано", ping: "відповідає на ping", noPing: "не відповідає на ping",
+    dnsRedirect: "Підміна DNS", lookups: "запитів, останній", lastLookup: "Останній DNS-запит PS5",
+    confirmRestart: "Перезапуск «{0}» перерве поточну трансляцію PS5. Продовжити?",
+    "ev:started": "Оркестратор запущено", "ev:ps5on": "PS5 почала трансляцію", "ev:ps5off": "PS5 зупинила трансляцію",
+    "ev:restart": "Ручний перезапуск: {0}", "ev:ipchg": "Адреса ПК змінилася! Очікувалась {0}, зараз {1}. Оновіть DNS на PS5 і перезапустіть шлюз.",
+  },
+  de: {
+    connecting: "Verbinde…", noLink: "Keine Verbindung zum Orchestrator", svcDown: "Ein Dienst läuft nicht",
+    live: "PS5 überträgt → OBS", starting: "PS5 überträgt, Weiterleitung startet…", idle: "PS5 überträgt nicht",
+    fps: "Bilder/s", bitrate: "Bitrate, kbit/s", speed: "Geschwindigkeit (1.0 = Echtzeit)", drops: "Verworfene / duplizierte Bilder", uptime: "Übertragungsdauer",
+    obsTitle: "OBS-Quelle", obsText: "Füge in OBS eine Medienquelle hinzu (\"Lokale Datei\" abwählen) mit dieser Adresse oder führe node scripts\\make-obs-scenes.mjs aus:",
+    obsNote: "Das Gateway liefert das PS5-Bild nur an diese Adresse. Zu Twitch geht nichts, bis du in OBS auf \"Streaming starten\" klickst.",
+    services: "Dienste", thService: "Dienst", thState: "Status", thRunning: "Läuft seit", thRestarts: "Neustarts", thLastExit: "Letztes Ende",
+    network: "Netzwerk", events: "Ereignisse", none: "noch keine", restart: "Neustart",
+    dns: "DNS (CoreDNS)", ingest: "RTMP-Empfang (MediaMTX)", relay: "Weiterleitung an OBS (FFmpeg, ohne Neukodierung)",
+    running: "läuft", crashed: "abgestürzt, Neustart", stopped: "gestoppt",
+    ip: "Die PC-Adresse hat sich geändert (erwartet {0}). Der DNS der PS5 zeigt nicht mehr auf diesen PC.",
+    pc: "PC", notOnIface: "auf keiner Schnittstelle!", ps5: "PS5", ps5NotSet: "PS5_IP nicht gesetzt", ping: "antwortet auf Ping", noPing: "antwortet nicht auf Ping",
+    dnsRedirect: "DNS-Umleitung", lookups: "Anfragen, zuletzt", lastLookup: "Letzte DNS-Anfrage der PS5",
+    confirmRestart: "Ein Neustart von \"{0}\" unterbricht die laufende PS5-Übertragung. Fortfahren?",
+    "ev:started": "Orchestrator gestartet", "ev:ps5on": "PS5 hat die Übertragung gestartet", "ev:ps5off": "PS5 hat die Übertragung beendet",
+    "ev:restart": "Manueller Neustart: {0}", "ev:ipchg": "PC-Adresse geändert! Erwartet {0}, jetzt {1}. DNS der PS5 anpassen und das Gateway neu starten.",
+  },
+  es: {
+    connecting: "conectando…", noLink: "sin conexión con el orquestador", svcDown: "Un servicio no está en marcha",
+    live: "PS5 transmitiendo → OBS", starting: "PS5 transmitiendo, iniciando el reenvío…", idle: "PS5 no está transmitiendo",
+    fps: "FPS", bitrate: "Bitrate, kbps", speed: "Velocidad (1.0 = tiempo real)", drops: "Fotogramas perdidos / duplicados", uptime: "Duración de la emisión",
+    obsTitle: "Fuente para OBS", obsText: "En OBS añade una Fuente de medios (desmarca \"Archivo local\") con esta dirección, o ejecuta node scripts\\make-obs-scenes.mjs:",
+    obsNote: "La pasarela solo entrega la imagen de la PS5 a esta dirección. Nada llega a Twitch hasta que pulses \"Iniciar transmisión\" en OBS.",
+    services: "Servicios", thService: "Servicio", thState: "Estado", thRunning: "En marcha", thRestarts: "Reinicios", thLastExit: "Última salida",
+    network: "Red", events: "Eventos", none: "aún ninguno", restart: "Reiniciar",
+    dns: "DNS (CoreDNS)", ingest: "Entrada RTMP (MediaMTX)", relay: "Reenvío a OBS (FFmpeg, sin recodificar)",
+    running: "en marcha", crashed: "falló, reiniciando", stopped: "detenido",
+    ip: "La dirección del PC cambió (se esperaba {0}). El DNS de la PS5 ya no apunta a este PC.",
+    pc: "PC", notOnIface: "¡no está en ninguna interfaz!", ps5: "PS5", ps5NotSet: "PS5_IP sin definir", ping: "responde al ping", noPing: "no responde al ping",
+    dnsRedirect: "Redirección DNS", lookups: "consultas, última", lastLookup: "Última consulta DNS de la PS5",
+    confirmRestart: "Reiniciar «{0}» interrumpirá la emisión actual de la PS5. ¿Continuar?",
+    "ev:started": "Orquestador iniciado", "ev:ps5on": "La PS5 empezó a transmitir", "ev:ps5off": "La PS5 dejó de transmitir",
+    "ev:restart": "Reinicio manual: {0}", "ev:ipchg": "¡La dirección del PC cambió! Se esperaba {0}, ahora {1}. Actualiza el DNS de la PS5 y reinicia la pasarela.",
+  },
+};
+let lang = "en";
+try { lang = localStorage.getItem("lang") || ""; } catch {}
+if (!I18N[lang]) lang = (navigator.languages || [navigator.language || "en"]).map((l) => String(l).slice(0, 2).toLowerCase()).find((l) => I18N[l]) || "en";
+const T = (k, ...a) => String((I18N[lang][k] ?? I18N.en[k] ?? k)).replace(/\{(\d)\}/g, (_, i) => a[i] ?? "");
+
+// the server logs events in English; match them to translations
+const EVENT_MAP = [
+  [/^Orchestrator started$/, "ev:started"], [/^PS5 started broadcasting$/, "ev:ps5on"], [/^PS5 stopped broadcasting$/, "ev:ps5off"],
+  [/^Manual restart: (\w+)$/, "ev:restart"], [/^PC address changed! Expected (\S+), now ([^.]*(?:\.\d+)*)\./, "ev:ipchg"],
+];
+function evText(msg) {
+  for (const [re, key] of EVENT_MAP) { const m = re.exec(msg); if (m) return T(key, ...m.slice(1)); }
+  return msg;
+}
+
+const fmtT = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ":" : "") + String(m).padStart(h ? 2 : 1, "0") + ":" + String(x).padStart(2, "0"); };
+const clock = (ms) => ms ? new Date(ms).toLocaleTimeString(lang) : "–";
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let last = null;
+
+function applyStatic() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i]").forEach((e) => { e.textContent = T(e.dataset.i); });
+}
+
+function render(d) {
+  last = d;
+  $("dry").hidden = !d.dry;
+  const s = $("state");
+  const down = d.services.some((x) => (x.name === "dns" || x.name === "ingest") && x.state !== "running") && !d.dry;
+  if (down) { s.className = "pill bad"; s.textContent = T("svcDown"); }
+  else if (d.live) { s.className = "pill live"; s.textContent = T("live"); }
+  else if (d.publishing) { s.className = "pill warn"; s.textContent = T("starting"); }
+  else { s.className = "pill idle"; s.textContent = T("idle"); }
+
+  const b = $("banner");
+  if (!d.net.ipOk) { b.hidden = false; b.textContent = T("ip", d.net.pcIp); } else b.hidden = true;
+
+  const live = d.live;
+  $("fps").textContent = live ? d.ff.fps.toFixed(0) : "–";
+  $("br").textContent = live ? Math.round(d.ff.bitrateKbps) : "–";
+  $("speed").textContent = live ? d.ff.speed.toFixed(2) : "–";
+  $("drop").textContent = live ? d.ff.drop + " / " + d.ff.dup : "–";
+  $("up").textContent = d.publishing ? fmtT(d.publishSinceS) : "–";
+  $("relay").textContent = d.relayUrl;
+
+  $("svc").innerHTML = d.services.map((x) => {
+    const btn = (x.name === "dns" || x.name === "ingest") && !d.dry ? '<button data-r="' + x.name + '">' + T("restart") + "</button>" : "";
+    return "<tr><td>" + T(x.name) + "</td><td>" + T(x.state) + "</td><td>" + (x.pid || "–") + "</td><td>" + (x.pid ? fmtT(x.uptimeS) : "–") + "</td><td>" + x.restarts + "</td><td>" + esc(x.lastExit || "–") + "</td><td>" + btn + "</td></tr>";
+  }).join("");
+
+  $("net").innerHTML =
+    "<div><span>" + T("pc") + ":</span> " + d.net.pcIp + (d.net.ipOk ? "" : " (" + T("notOnIface") + ")") + "</div>" +
+    "<div><span>" + T("ps5") + " " + (d.ps5.ip || "(" + T("ps5NotSet") + ")") + ":</span> " + (d.ps5.reachable ? T("ping") : T("noPing")) + "</div>" +
+    "<div><span>" + T("dnsRedirect") + ":</span> " + d.ps5.spoofHits + " " + T("lookups") + " " + clock(d.ps5.spoofLast) + "</div>" +
+    "<div><span>" + T("lastLookup") + ":</span> " + clock(d.ps5.lastDns) + "</div>";
+
+  $("events").innerHTML = d.events.length
+    ? d.events.map((e) => '<li><span class="t">' + clock(e.t) + "</span>" + esc(evText(e.msg)) + "</li>").join("")
+    : '<li class="t">' + T("none") + "</li>";
+}
+
+$("lang").innerHTML = Object.entries(LANGS).map(([k, v]) => '<option value="' + k + '">' + v + "</option>").join("");
+$("lang").value = lang;
+$("lang").addEventListener("change", (e) => {
+  lang = e.target.value;
+  try { localStorage.setItem("lang", lang); } catch {}
+  applyStatic();
+  if (last) render(last); else $("state").textContent = T("connecting");
+});
+
+$("svc").addEventListener("click", async (e) => {
+  const n = e.target.dataset && e.target.dataset.r;
+  if (!n) return;
+  if (!confirm(T("confirmRestart", T(n)))) return;
+  await fetch("/api/restart/" + n, { method: "POST", headers: { "x-token": TOKEN } });
+});
+
+applyStatic();
+$("state").textContent = T("connecting");
+const es = new EventSource("/events");
+es.onmessage = (m) => render(JSON.parse(m.data));
+es.onerror = () => { $("state").className = "pill bad"; $("state").textContent = T("noLink"); };
+</script>
+</body>

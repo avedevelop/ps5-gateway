@@ -1,0 +1,27 @@
+name: Bug report
+description: Something does not work
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Run `node scripts\doctor.mjs` first and paste its output below.
+        **Never paste your stream key, `.env`, token files or unredacted logs.** Remove anything after `live_` or `app/`.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `node scripts\doctor.mjs`
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Windows version, GPU, OBS version
+      placeholder: "Windows 11 23H2, AMD RX 6700 XT, OBS 32.0"

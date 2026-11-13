@@ -1,0 +1,10 @@
+{
+  "name": "ps5-gateway-orchestrator",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node src/index.ts",
+    "dry": "node src/index.ts --dry"
+  }
+}

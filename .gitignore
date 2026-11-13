@@ -1,0 +1,26 @@
+# local configuration and secrets
+.env
+.env.*
+!.env.example
+.token
+
+# generated at every start from config/*.tpl
+config/Corefile
+config/mediamtx.yml
+
+# downloaded by scripts/setup.mjs
+bin/
+dl/
+
+# runtime
+logs/
+node_modules/
+
+# personal data and local-only files
+.da-tokens.json
+.twitch-tokens.json
+*-tokens.json
+data/
+assets/
+samples/
+recordings/
