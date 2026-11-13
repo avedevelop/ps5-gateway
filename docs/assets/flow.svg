@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" role="img" aria-labelledby="t d">
+  <title id="t">How PS5 Gateway works</title>
+  <desc id="d">The PS5 broadcast is redirected by DNS to your PC. MediaMTX receives it, a relay delivers it to OBS, and OBS streams to Twitch.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#8b98a9"/></marker>
+    <style>
+      text { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .box { fill: #1c2431; stroke: #3b4658; stroke-width: 1.5; }
+      .pc  { fill: #121923; stroke: #3b4658; stroke-width: 1.5; stroke-dasharray: 6 5; }
+      .in  { fill: #26334a; stroke: #4f6b99; stroke-width: 1.5; }
+      .hl  { fill: #153a32; stroke: #3fbf9b; stroke-width: 1.5; }
+      .t1  { fill: #f2f5f9; font-size: 18px; font-weight: 650; }
+      .t2  { fill: #aab6c6; font-size: 13px; }
+      .cap { fill: #8b98a9; font-size: 12.5px; }
+      .ln  { stroke: #8b98a9; stroke-width: 2; fill: none; marker-end: url(#a); }
+    </style>
+  </defs>
+
+  <rect x="8" y="8" width="944" height="284" rx="18" fill="#0f141c"/>
+
+  <!-- PS5 -->
+  <rect class="box" x="32" y="104" width="150" height="92" rx="12"/>
+  <text class="t1" x="107" y="144" text-anchor="middle">PS5</text>
+  <text class="t2" x="107" y="168" text-anchor="middle">Broadcast to Twitch</text>
+
+  <!-- PC -->
+  <rect class="pc" x="238" y="40" width="470" height="220" rx="16"/>
+  <text class="cap" x="256" y="62">YOUR WINDOWS PC</text>
+  <rect class="in" x="262" y="82" width="130" height="64" rx="10"/>
+  <text class="t1" x="327" y="110" text-anchor="middle" style="font-size:16px">CoreDNS</text>
+  <text class="t2" x="327" y="130" text-anchor="middle">DNS redirect</text>
+  <rect class="in" x="262" y="164" width="130" height="64" rx="10"/>
+  <text class="t1" x="327" y="192" text-anchor="middle" style="font-size:16px">MediaMTX</text>
+  <text class="t2" x="327" y="212" text-anchor="middle">RTMP ingest :1935</text>
+  <rect class="hl" x="446" y="104" width="238" height="92" rx="12"/>
+  <text class="t1" x="565" y="140" text-anchor="middle">Relay</text>
+  <text class="t2" x="565" y="162" text-anchor="middle">no re-encoding</text>
+  <text class="t2" x="565" y="180" text-anchor="middle">rtmp://PC:1935/ps5/game</text>
+
+  <!-- OBS -->
+  <rect class="box" x="756" y="104" width="86" height="92" rx="12"/>
+  <text class="t1" x="799" y="156" text-anchor="middle">OBS</text>
+
+  <!-- Twitch -->
+  <rect class="box" x="868" y="104" width="76" height="92" rx="12"/>
+  <text class="t1" x="906" y="156" text-anchor="middle">Twitch</text>
+
+  <!-- arrows -->
+  <path class="ln" d="M182 132 H262" />
+  <path class="ln" d="M182 168 H236 V196 H262" />
+  <path class="ln" d="M392 196 H420 V160 H446" />
+  <path class="ln" d="M684 150 H756" />
+  <path class="ln" d="M842 150 H868" />
+  <text class="cap" x="208" y="124" text-anchor="middle">1 · DNS</text>
+  <text class="cap" x="214" y="232" text-anchor="middle">2 · stream</text>
+  <text class="cap" x="720" y="140" text-anchor="middle">3</text>
+  <text class="cap" x="855" y="140" text-anchor="middle">4</text>
+  <text class="cap" x="805" y="222" text-anchor="middle">you press</text>
+  <text class="cap" x="805" y="240" text-anchor="middle">Start Streaming</text>
+</svg>

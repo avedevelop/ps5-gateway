@@ -20,7 +20,7 @@ node_modules/
 .da-tokens.json
 .twitch-tokens.json
 *-tokens.json
-data/
-assets/
-samples/
-recordings/
+/data/
+/assets/
+/samples/
+/recordings/
