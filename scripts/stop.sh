@@ -5,7 +5,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 launchctl bootout "gui/$(id -u)/com.ps5gateway" 2>/dev/null
 # the orchestrator is the process listening on the dashboard port 8787; on SIGTERM it stops its own children
 pids=$(lsof -nP -t -iTCP:8787 -sTCP:LISTEN 2>/dev/null)
-[ -n "$pids" ] && kill $pids 2>/dev/null
+for p in $pids; do kill "$p" 2>/dev/null; done
 # wait (at most 6 s) until the orchestrator and both servers are really gone, so a start right after this always works
 i=0
 while [ $i -lt 20 ]; do

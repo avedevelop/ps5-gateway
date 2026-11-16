@@ -52,12 +52,13 @@ echo 'PS5 Gateway installer (macOS)'
 step '1/6  Requirements'
 if [ "$(uname -s)" != Darwin ]; then bad 'This installer is for macOS. On Windows use installer\windows\Install-PS5-Gateway.cmd.'; else ok "macOS $(sw_vers -productVersion) ($(uname -m))"; fi
 have_brew=0; find_brew && have_brew=1
-[ "$have_brew" = 1 ] && ok "Homebrew $(brew --version | head -1 | sed 's/Homebrew //')" || warn 'Homebrew not found (https://brew.sh). It is needed to install FFmpeg and, if missing, Node.js.'
+if [ "$have_brew" = 1 ]; then ok "Homebrew $(brew --version | head -1 | sed 's/Homebrew //')"
+else warn 'Homebrew not found (https://brew.sh). It is needed to install FFmpeg and, if missing, Node.js.'; fi
 
 if node_ok; then ok "Node.js $(node -v)"
 elif [ "$check" = 1 ]; then bad 'Node.js 22.18 or newer is missing (https://nodejs.org, or: brew install node)'
 elif [ "$have_brew" = 1 ] && ask 'Node.js is missing. Install it with Homebrew now?' y; then
-  brew install node && node_ok && ok "Node.js $(node -v) installed" || bad 'Node.js installation failed'
+  if brew install node && node_ok; then ok "Node.js $(node -v) installed"; else bad 'Node.js installation failed'; fi
 else bad 'Node.js 22.18 or newer is required. Install Node.js 24 LTS from https://nodejs.org and run this again.'; fi
 
 ffmpeg_ok=0
@@ -66,7 +67,7 @@ command -v ffmpeg >/dev/null 2>&1 && ffmpeg_ok=1
 if [ "$ffmpeg_ok" = 1 ]; then ok 'FFmpeg found'
 elif [ "$check" = 1 ]; then bad 'FFmpeg is missing (brew install ffmpeg)'
 elif [ "$have_brew" = 1 ] && ask 'FFmpeg is missing. Install it with Homebrew now?' y; then
-  brew install ffmpeg && ok 'FFmpeg installed' || bad 'FFmpeg installation failed'
+  if brew install ffmpeg; then ok 'FFmpeg installed'; else bad 'FFmpeg installation failed'; fi
 else bad 'FFmpeg is required (brew install ffmpeg)'; fi
 
 obs=$(find_obs) || obs=""
@@ -77,12 +78,12 @@ if [ -n "$obs" ]; then
   else warn "OBS Studio $v found. On macOS 27 versions older than 33 crash at startup; update with: brew install --cask obs"; fi
 elif [ "$noobs" = 1 ] || [ "$check" = 1 ]; then warn 'OBS Studio not found (https://obsproject.com, version 33 or newer)'
 elif [ "$have_brew" = 1 ] && ask 'OBS Studio is missing. Download and install it with Homebrew (about 210 MB)?' n; then
-  brew install --cask obs && ok 'OBS Studio installed' || warn 'OBS installation failed; install it from https://obsproject.com'
+  if brew install --cask obs; then ok 'OBS Studio installed'; else warn 'OBS installation failed; install it from https://obsproject.com'; fi
 else warn 'OBS Studio not found. Install version 33 or newer from https://obsproject.com'; fi
 
 if [ "$check" = 1 ]; then
   step 'Check only'
-  [ -f "$root/.env" ] && ok '.env exists' || warn '.env not created yet (the installer creates it)'
+  if [ -f "$root/.env" ]; then ok '.env exists'; else warn '.env not created yet (the installer creates it)'; fi
   echo
   if [ "$problems" -gt 0 ]; then echo "$problems problem(s) found."; exit 1; fi
   echo 'Ready to install.'; exit 0
