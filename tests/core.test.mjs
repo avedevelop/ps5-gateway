@@ -44,3 +44,51 @@ test('.env.example lists the keys the code reads and holds no secrets', () => {
   for (const k of ['PC_LAN_IP', 'PS5_IP']) assert.ok(k in ex, k);
   for (const v of Object.values(ex)) assert.equal(v, '', 'example values must be empty');
 });
+
+// ---------- platform differences (apps/common/platform.mjs) ----------
+import { exeName, pingArgs, obsScenesDir, renderConfig } from '../apps/common/platform.mjs';
+const tpl = (f) => readFileSync(join(ROOT, 'config', `${f}.tpl`), 'utf8');
+const IPS = { pcIp: '192.168.1.20', ps5Ip: '192.168.1.50' };
+
+test('exeName: .exe only on Windows', () => {
+  assert.equal(exeName('coredns', true), 'coredns.exe');
+  assert.equal(exeName('coredns', false), 'coredns');
+});
+
+test('pingArgs: one ping, timeout in the unit each system expects', () => {
+  assert.deepEqual(pingArgs('192.168.1.50', 1500, 'win32'), ['-n', '1', '-w', '1500', '192.168.1.50']);
+  assert.deepEqual(pingArgs('192.168.1.50', 1500, 'darwin'), ['-c', '1', '-W', '1500', '192.168.1.50']);
+  assert.deepEqual(pingArgs('192.168.1.50', 1500, 'linux'), ['-c', '1', '-W', '2', '192.168.1.50']);
+});
+
+test('obsScenesDir: where OBS keeps scene collections', () => {
+  const fwd = (p) => p.replaceAll('\\', '/'); // the separator is the one of the system running the tests
+  assert.equal(fwd(obsScenesDir('darwin', '/Users/me', '')), '/Users/me/Library/Application Support/obs-studio/basic/scenes');
+  assert.equal(fwd(obsScenesDir('win32', '', 'C:/Users/me/AppData/Roaming')), 'C:/Users/me/AppData/Roaming/obs-studio/basic/scenes');
+});
+
+test('renderConfig on Windows: services bind to the PC address, nothing else changes', () => {
+  for (const f of ['Corefile', 'mediamtx.yml'])
+    assert.equal(renderConfig(f, tpl(f), { ...IPS, win: true }), tpl(f).replaceAll('__PC_IP__', IPS.pcIp));
+});
+
+test('renderConfig on macOS: DNS on the wildcard address, answering only the PS5 and this computer', () => {
+  const core = renderConfig('Corefile', tpl('Corefile'), { ...IPS, win: false });
+  assert.ok(!/^\s*bind /m.test(core), 'no bind line: a specific address on port 53 needs root on macOS');
+  assert.equal(core.match(/allow net 192\.168\.1\.50 192\.168\.1\.20 127\.0\.0\.1 ::1\n\s+block/g)?.length, 2, 'both server blocks are restricted');
+  assert.match(core, /IN A 192\.168\.1\.20"/, 'the spoofed answer is still the PC address');
+  assert.match(core, /\{\{ \.Name \}\}/);
+  assert.ok(!core.includes('__PC_IP__'));
+});
+
+test('renderConfig on macOS: RTMP only from the PS5 and this computer', () => {
+  const mtx = renderConfig('mediamtx.yml', tpl('mediamtx.yml'), { ...IPS, win: false });
+  assert.match(mtx, /rtmpAddress: 192\.168\.1\.20:1935/);
+  assert.match(mtx, /authInternalUsers:\n- user: any\n  pass:\n  ips: \['192\.168\.1\.50', '192\.168\.1\.20', '127\.0\.0\.1'\]/);
+  assert.match(mtx, /- action: publish[\s\S]*- action: read/);
+});
+
+test('renderConfig on macOS without a PS5 address: only this computer is allowed', () => {
+  const core = renderConfig('Corefile', tpl('Corefile'), { pcIp: '192.168.1.20', ps5Ip: '', win: false });
+  assert.match(core, /allow net 192\.168\.1\.20 127\.0\.0\.1 ::1/);
+});

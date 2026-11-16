@@ -2,6 +2,8 @@
 
 Start with `node scripts\doctor.mjs`. It checks every link of the chain and prints a fix next to each problem. Logs are in `logs\` (`orch.out.log`, `ingest.log`, `dns.log`, `relay.log`).
 
+On macOS the commands are the same with forward slashes (`node scripts/doctor.mjs`), and start and stop are `sh scripts/start.sh` and `sh scripts/stop.sh`. Mac-specific problems are collected [at the end](#macos).
+
 ## The PS5 has no internet after I changed DNS
 
 The PS5 now asks the PC for every name. If the gateway is not running, or the firewall blocks it, nothing resolves.
@@ -19,7 +21,7 @@ The PS5 now asks the PC for every name. If the gateway is not running, or the fi
 
 ## `doctor` says the PC address changed
 
-The router gave the PC a new address, so the PS5's DNS now points at nothing. Make a DHCP reservation for the PC in the router, set the PS5's DNS to the PC's address again, and either remove `PC_LAN_IP` from `.env` (auto-detect) or update it. Restart the gateway.
+The router gave the PC a new address, so the PS5's DNS now points at nothing. Set the PS5's DNS to the PC's address again, and either remove `PC_LAN_IP` from `.env` (auto-detect) or update it. Restart the gateway. If your router lets you, a DHCP reservation for the PC (optional) prevents this.
 
 ## OBS: the PS5 source is black
 
@@ -68,6 +70,19 @@ powershell -ExecutionPolicy Bypass -File scripts\stop.ps1
 ```
 
 Delete `.env` if you want setup to recreate it, then run `node scripts\setup.mjs` again.
+
+## macOS
+
+- **OBS closes right after it opens (macOS 27).** OBS 32.2.2 crashes inside Qt when it sets the mouse cursor, in normal and safe mode alike, and the crash report mentions `QWidget::setCursor` and `CGImageCreate`. Use OBS 33 or newer (`brew install --cask obs`); 33.0.1 starts fine.
+- **The PS5 source is wider than the canvas on a MacBook.** OBS takes the screen's shape as its canvas (for example 2940x1912, which is 16:10), so a 16:9 picture is cut at the sides. In OBS Settings > Video set Base (Canvas) and Output (Scaled) resolution to 1920x1080, then select the source and press Cmd+F.
+- **`FFmpeg not found`**: `brew install ffmpeg`, then start again.
+- **The PS5 has no internet, `doctor` is all ok on the Mac.** The gateway answers only the address in `PS5_IP`. If the PS5 got a new address, its lookups are refused: put the new address into `.env` and restart. `logs/dns.log` stays empty for the PS5 in this case.
+- **The macOS firewall is on.** `doctor` warns about it and prints the commands that allow `coredns` and `mediamtx`. Or turn the firewall off under System Settings > Network > Firewall.
+- **Port 53 is busy.** `sudo lsof -nP -i :53` shows who uses it. Usual suspects: Internet Sharing (System Settings > General > Sharing), Docker, dnsmasq, a VPN client.
+- **The Mac's address changed.** A MacBook gets a new address on every network it joins. The gateway detects the address at start; after moving, restart the gateway and set the PS5's DNS to the new address. If your router allows it, a DHCP reservation (optional) avoids this.
+- **The stream stopped when I closed the lid.** A closed MacBook sleeps. Keep the lid open while streaming.
+- **"node" would like to access files in your Documents folder** (with autostart): move the project out of Desktop, Documents and Downloads, then run `sh scripts/install-autostart.sh` again.
+- **`Already running: coredns, mediamtx`**: `sh scripts/stop.sh`, then start again.
 
 ## Still stuck
 

@@ -9,8 +9,8 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "doctor": "node scripts/doctor.mjs",
-    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start.ps1",
-    "stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/stop.ps1",
+    "start": "node scripts/run.mjs start",
+    "stop": "node scripts/run.mjs stop",
     "test": "node --test tests/core.test.mjs"
   },
   "repository": { "type": "git", "url": "git+https://github.com/avedevelop/ps5-gateway.git" }

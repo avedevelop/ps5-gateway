@@ -9,7 +9,7 @@ How to use: copy a prompt from the grey blocks below, replace the `<...>` parts,
 ## Prompt 1: guided installation (coding agent on your PC)
 
 ```text
-You are helping me install PS5 Gateway on my Windows PC. It redirects my PS5's built-in
+You are helping me install PS5 Gateway on my Windows PC (or Mac). It redirects my PS5's built-in
 "Broadcast to Twitch" to my PC so I can use OBS with the PS5 picture.
 
 Repository: https://github.com/avedevelop/ps5-gateway
@@ -19,7 +19,8 @@ Read these files first, in this order, before running anything:
 Goal: the PS5 picture shows up in OBS as the "PS5" source.
 
 Rules:
-- Work step by step following docs/INSTALL.md. Use the project's own scripts
+- Work step by step following docs/INSTALL.md (on a Mac: its section "Installing on
+  macOS"; use scripts/start.sh instead of start.ps1, and skip firewall.ps1). Use the project's own scripts
   (scripts/setup.mjs, scripts/firewall.ps1, scripts/start.ps1, scripts/doctor.mjs,
   scripts/make-obs-scenes.mjs). Do not invent other install methods.
 - Before every command that changes my system (firewall rules, files outside the
@@ -45,7 +46,7 @@ Start by checking Node.js (node -v) and tell me what you find.
 ## Prompt 2: guided installation (plain chat, no command access)
 
 ```text
-I want to install PS5 Gateway (https://github.com/avedevelop/ps5-gateway) on Windows 11 to
+I want to install PS5 Gateway (https://github.com/avedevelop/ps5-gateway) on <Windows 11 / macOS> to
 stream my PS5 through OBS to Twitch without a capture card. You cannot run commands, so
 guide me one small step at a time.
 
@@ -58,7 +59,7 @@ Rules:
 - Never ask for my stream key, passwords, tokens or the .env file.
 - Use simple words. I am not a developer.
 
-My setup: Windows <10/11>, PS5 IP <address or "I don't know where to find it">,
+My setup: <Windows 10/11 or macOS>, PS5 IP <address or "I don't know where to find it">,
 router brand <brand or "don't know">. Start with step 0 of the guide.
 ```
 
@@ -108,8 +109,8 @@ Rules:
 
 If a user pointed you at this repository, this is what you need to know. Everything below is also in the other docs; this is the short version.
 
-- **What it is**: Windows-only. CoreDNS answers the PS5's lookup of Twitch's ingest hostname (`*.contribute.live-video.net`) with the PC's address. MediaMTX receives the PS5's RTMP publish on port 1935. The orchestrator (`apps/orchestrator`, Node, no dependencies) runs both and relays the stream (FFmpeg, no re-encoding) to `rtmp://<PC>:1935/ps5/game`, which OBS opens as a Media Source. The gateway never publishes to Twitch; OBS does.
-- **Install path**: `node scripts/setup.mjs --ps5-ip=<ip>` then `scripts/firewall.ps1` (Administrator) then `scripts/start.ps1` then `node scripts/doctor.mjs`.
+- **What it is**: runs on Windows and macOS (differences are in `apps/common/platform.mjs`). CoreDNS answers the PS5's lookup of Twitch's ingest hostname (`*.contribute.live-video.net`) with the PC's address. MediaMTX receives the PS5's RTMP publish on port 1935. The orchestrator (`apps/orchestrator`, Node, no dependencies) runs both and relays the stream (FFmpeg, no re-encoding) to `rtmp://<PC>:1935/ps5/game`, which OBS opens as a Media Source. The gateway never publishes to Twitch; OBS does.
+- **Install path**: `node scripts/setup.mjs --ps5-ip=<ip>` then `scripts/firewall.ps1` (Administrator) then `scripts/start.ps1` then `node scripts/doctor.mjs`. On macOS: `brew install ffmpeg`, setup, `sh scripts/start.sh`, doctor; there is no firewall step.
 - **Secrets**: `.env`, `.token`, and the OBS stream key (kept in OBS). Never print, log, commit or ask for them.
 - **Never** restart or stop the gateway while the user streams; that drops the PS5 broadcast.
 - **Config is generated**: edit `config/Corefile.tpl` and `config/mediamtx.yml.tpl`, not the generated `config/Corefile` and `config/mediamtx.yml`.

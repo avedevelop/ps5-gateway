@@ -4,7 +4,7 @@ Thanks for wanting to help. This is a hobby project, so reviews can be slow, but
 
 ## Good first contributions
 
-- Try it on other hardware or Windows versions and report what happens.
+- Try it on other hardware, Windows versions or Macs and report what happens.
 - Improve the documentation wherever a step confused you.
 - Make the dashboard (`apps/orchestrator/public/index.html`) nicer or add a language.
 - Extend `scripts/doctor.mjs` with a check that would have saved you time.
@@ -15,6 +15,7 @@ Thanks for wanting to help. This is a hobby project, so reviews can be slow, but
 - **Nothing machine-specific in the repository**: no IP addresses, usernames, absolute paths or keys. Use `.env`, `apps/common/lanip.mjs`, or paths relative to the project root.
 - **Secrets never leave your machine.** Check `git status` and `git diff --cached` before committing. `.env`, `.env.*`, `.token`, `logs/`, `bin/` and the generated `config/Corefile` and `config/mediamtx.yml` are ignored on purpose.
 - **Scripts in `scripts/*.ps1` are ASCII.** Windows PowerShell 5.1 reads UTF-8 files without a BOM as ANSI and mangles other characters. Keep messages in English.
+- **Platform differences go into `apps/common/platform.mjs`**, not into `if (process.platform ...)` scattered around. A change must keep both Windows and macOS working; say in the pull request which one you could not test.
 - **Do not restart the gateway while someone is live**; it ends the PS5 broadcast. Test with `--dry` as described below.
 
 ## Development setup

@@ -4,18 +4,20 @@ About 20 minutes. You will end up with the PS5's picture inside OBS, ready to st
 
 If you would rather have an AI assistant walk you through it, use the prompts in [AI-INSTALL.md](AI-INSTALL.md).
 
+The steps below are written for Windows. **On a Mac**, follow [Installing on macOS](#installing-on-macos) for steps 1 to 5; steps 4 (PS5) and 6 (OBS) are the same on both.
+
 ## 0. Before you start
 
 | You need | Notes |
 |---|---|
-| Windows 10 or 11 PC | The PC must stay on while you stream. |
+| Windows 10 or 11 PC, or a Mac | It must stay on and awake while you stream. |
 | [Node.js 24 LTS](https://nodejs.org) | Check with `node -v` in PowerShell. 22.18 or newer also works. |
 | [OBS Studio](https://obsproject.com) | Any recent version. |
 | PS5 with a Twitch account linked | PS5: Settings > Users and Accounts > Link with Other Services > Twitch. |
 | PC and PS5 on the same network | Ethernet is best for both. Wi-Fi works but can cause dropped frames. |
 | A Twitch account | Your stream key: Twitch Creator Dashboard > Settings > Stream. |
 
-Do this first, it saves trouble later: **give the PC a fixed IP address.** In your router's settings find "DHCP reservation" (or "static lease") and bind the PC's address. The PS5 will be told this address as its DNS server, so if the PC's address changes, the PS5 loses internet.
+Good to know: the PS5 will be told the PC's address as its DNS server, so if that address changes (new network, router restart), the PS5 has no internet until you set the new address on it (step 4). Optional: if your router lets you, bind the PC's address in its settings ("DHCP reservation" or "static lease") and this never happens.
 
 ## 1. Get the project
 
@@ -87,6 +89,36 @@ To start the gateway automatically when you log in to Windows: `powershell -Exec
 
 If you added the source by hand and it shows as a small or black rectangle, select it and press **Ctrl+F** (Fit to screen). Details in [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
+## Installing on macOS
+
+Works on Apple silicon and Intel Macs. No administrator rights and no firewall script are needed.
+
+1. Install [Node.js 24 LTS](https://nodejs.org), [OBS Studio](https://obsproject.com) **33 or newer** (OBS 32.2.2 crashes at startup on macOS 27) and FFmpeg. FFmpeg has no official macOS download, so it comes from [Homebrew](https://brew.sh): `brew install ffmpeg`.
+2. Get the project and run setup (the PS5's address is found as in step 2 above):
+   ```bash
+   git clone https://github.com/avedevelop/ps5-gateway.git
+   cd ps5-gateway
+   node scripts/setup.mjs --ps5-ip=192.168.1.50
+   ```
+   Setup downloads MediaMTX and CoreDNS for your Mac's processor into `bin/` (checksum-verified), finds FFmpeg and writes `.env`.
+3. Point the PS5 at the Mac: step 4 above, with the Mac's address as Primary DNS.
+4. Start the gateway and check it:
+   ```bash
+   sh scripts/start.sh
+   node scripts/doctor.mjs
+   ```
+5. Set up OBS: step 6 above. The commands are the same with forward slashes, for example `node scripts/make-obs-scenes.mjs`. OBS must have been started at least once. Where the guide says **Ctrl+F**, use **Cmd+F**.
+
+Good to know on a Mac:
+
+- **Who can reach the gateway.** macOS lets a normal program open the DNS port only on all network interfaces at once, so instead of a firewall rule the gateway itself refuses everyone except the PS5 (`PS5_IP` in `.env`) and the Mac. If the PS5's address changes, update `.env` and restart.
+- **macOS firewall.** It is off by default. If you turned it on (System Settings > Network > Firewall), macOS may block the PS5; `doctor` detects this and prints the two commands that allow the gateway's servers.
+- **Sleep.** While the PS5 broadcasts, the gateway keeps the Mac from going to sleep on its own. Closing a MacBook's lid still puts it to sleep, so keep it open.
+- **Wi-Fi.** A MacBook is usually on Wi-Fi, and its address changes when it joins another network. If your router allows it, reserving its address (step 0) avoids this; otherwise just set the new address on the PS5 after moving.
+- **Autostart at login:** `sh scripts/install-autostart.sh` (remove with `--remove`). macOS does not let background programs read Desktop, Documents or Downloads without asking, so keep the project folder elsewhere, for example `~/ps5-gateway`.
+- **Stop:** `sh scripts/stop.sh`. **Update:** stop, `git pull`, `node scripts/setup.mjs`, start.
+- **Uninstall:** set the PS5's DNS back to Automatic, run `sh scripts/install-autostart.sh --remove` if you enabled autostart, `sh scripts/stop.sh`, delete the folder.
+
 ## Updating
 
 ```powershell
@@ -110,6 +142,6 @@ Your `.env` is git-ignored and survives updates.
 
 | Port | What | Reachable from |
 |---|---|---|
-| 53 UDP/TCP | DNS (CoreDNS) | PS5 only |
+| 53 UDP/TCP | DNS (CoreDNS) | PS5 only (macOS: PS5 and this Mac) |
 | 1935 TCP | RTMP ingest (MediaMTX) | PS5 and this PC |
 | 8787 TCP | Dashboard | this PC only |
