@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createWriteStream, type WriteStream } from 'node:fs';
 import { mask } from './mask.ts';
+import { spawnOpts, killTree } from '../../common/platform.mjs';
 
 export type ServiceState = 'stopped' | 'running' | 'crashed';
 
@@ -43,7 +44,7 @@ export class Service {
     }
     const child = spawn(this.o.cmd, this.o.args(), {
       cwd: this.o.cwd,
-      windowsHide: true,
+      ...spawnOpts(),
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     this.child = child;
@@ -73,12 +74,9 @@ export class Service {
     });
   }
 
-  // child.kill() на Windows убивает только сам процесс; taskkill /T снимает и его потомков (ffmpeg, Chrome)
+  // ends the process together with its descendants (taskkill /T on Windows, the process group on macOS)
   private killTree(): void {
-    const pid = this.child?.pid;
-    if (!pid) return;
-    try { spawn('taskkill', ['/PID', String(pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' }).on('error', () => this.child?.kill()); }
-    catch { this.child?.kill(); }
+    if (this.child) killTree(this.child);
   }
 
   stop(): void {

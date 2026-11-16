@@ -15,6 +15,7 @@ PS5 Gateway is a home-network hobby tool. It runs a DNS server and an RTMP serve
 ## Network exposure
 
 - DNS (53) and RTMP (1935) are allowed through the Windows firewall **only from the PS5's address**, and bound to the PC's LAN address.
+- On macOS, DNS has to listen on all interfaces, so access is limited by the services themselves: CoreDNS and MediaMTX answer **only the PS5's address and the Mac itself** and refuse everyone else.
 - The dashboard (8787) listens on `127.0.0.1` only and answers only requests addressed to `127.0.0.1` or `localhost`.
 - Do not port-forward any of these ports on your router. Do not run this on a shared or public network, and do not tell other devices to use your PC as DNS.
 - The DNS server answers only a small set of Twitch ingest names with the PC's address; everything else is forwarded to public resolvers (1.1.1.1 and 8.8.8.8).

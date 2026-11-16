@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **macOS support** (Apple silicon and Intel). Setup downloads the macOS builds of MediaMTX and CoreDNS and uses FFmpeg from Homebrew. New scripts: `scripts/start.sh`, `scripts/stop.sh`, `scripts/install-autostart.sh` (LaunchAgent). `npm start` and `npm stop` now work on both systems.
+- On macOS no firewall script is needed: the generated configs let only the PS5 and the Mac itself use DNS and RTMP. The Mac is kept from idle sleep while the PS5 broadcasts.
+- Platform differences moved into `apps/common/platform.mjs`, with unit tests. Windows behaviour is unchanged.
+- The gateway's own relay path (`ps5/game`) is never mistaken for the console's publish.
+- Verified with a real PS5 on Windows 10 and 11 (OBS 32) and on a MacBook with Apple silicon, macOS 27 (OBS 33.0.1).
+
 ## 1.0.0
 
 First public release: stream your PS5 into OBS. Licensed under PolyForm Noncommercial 1.0.0.

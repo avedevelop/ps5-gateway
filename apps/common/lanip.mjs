@@ -1,8 +1,8 @@
 // Finds the PC's LAN IPv4 address (the one the PS5 can reach).
-// Skips virtual adapters (VPN, Hyper-V, WSL, VirtualBox, Docker) and link-local addresses.
+// Skips virtual adapters (VPN, Hyper-V, WSL, VirtualBox, Docker, macOS bridge/utun) and link-local addresses.
 import { networkInterfaces } from 'node:os';
 
-const VIRTUAL = /vpn|virtual|vethernet|vmware|vbox|hyper-v|wsl|docker|loopback|tap|tun|tailscale|zerotier|radmin|hamachi|parsec/i;
+const VIRTUAL = /vpn|virtual|vethernet|vmware|vbox|hyper-v|wsl|docker|loopback|tap|tun|tailscale|zerotier|radmin|hamachi|parsec|^bridge\d|vmnet|^awdl|^llw/i;
 
 /** All private IPv4 candidates, best first. */
 export function lanCandidates() {

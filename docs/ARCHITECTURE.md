@@ -23,10 +23,23 @@ When you press Broadcast on a PS5, the console asks Twitch which ingest server t
 | MediaMTX | `bin\mediamtx`, config from `config\mediamtx.yml.tpl` | RTMP server on `<PC>:1935`. Accepts the PS5's publish on any path; only RTMP is enabled. |
 | Orchestrator | `apps\orchestrator` | TypeScript run by Node's built-in type stripping, no npm packages. Starts and watches DNS, ingest and the relay; restarts them if they die; detects "PS5 started publishing" from the MediaMTX log; serves the dashboard on `127.0.0.1:8787` with a small JSON API. |
 | Relay | FFmpeg, started by the orchestrator | Copies the PS5's stream without re-encoding to `rtmp://<PC>:1935/ps5/game` while the PS5 broadcasts. |
-| Common helpers | `apps\common` | LAN IP detection, `.env` reading. |
+| Common helpers | `apps\common` | LAN IP detection, `.env` reading, Windows/macOS differences. |
 | Scripts | `scripts` | `setup`, `doctor`, `start`, `stop`, `firewall`, `install-autostart`, OBS scene generator. |
 
-Configs are **generated at every start** from the `.tpl` files by replacing `__PC_IP__`, so nothing machine-specific is committed. Edit the templates, not the generated files.
+## Windows and macOS
+
+Everything that differs between the two systems is in `apps/common/platform.mjs`; the rest of the code is the same.
+
+| | Windows | macOS |
+|---|---|---|
+| Helper programs | FFmpeg, MediaMTX, CoreDNS downloaded into `bin\` | MediaMTX and CoreDNS downloaded into `bin/`; FFmpeg from Homebrew |
+| DNS listens on | the PC's LAN address | all interfaces (an unprivileged process may open port 53 only that way) |
+| Who may use DNS and RTMP | Windows Firewall rules for the PS5 (`scripts\firewall.ps1`) | allow-lists in the generated configs: CoreDNS `acl`, MediaMTX `authInternalUsers`, both limited to the PS5 and the computer itself |
+| Stopping a service | `taskkill /T` | signal to the service's process group |
+| Start, stop, autostart | `*.ps1`, scheduled task | `*.sh`, LaunchAgent `com.ps5gateway` |
+| Sleep | not managed | `caffeinate` runs while the PS5 is publishing |
+
+Configs are **generated at every start** from the `.tpl` files by replacing `__PC_IP__` (and, on macOS, adding the allow-lists above), so nothing machine-specific is committed. Edit the templates, not the generated files.
 
 ## Why a relay instead of reading the PS5's own path?
 
@@ -58,7 +71,7 @@ The server answers only requests whose `Host` is `127.0.0.1:8787` or `localhost:
 
 | Port | Process | Bound to |
 |---|---|---|
-| 53 UDP/TCP | CoreDNS | LAN address |
+| 53 UDP/TCP | CoreDNS | LAN address (macOS: all interfaces, PS5 and this Mac only) |
 | 1935 TCP | MediaMTX | LAN address |
 | 8787 TCP | Orchestrator dashboard | 127.0.0.1 |
 
@@ -66,7 +79,7 @@ The server answers only requests whose `Host` is `127.0.0.1:8787` or `localhost:
 
 ```
 apps/orchestrator   supervisor, relay and dashboard (TypeScript, no deps)
-apps/common         shared helpers
+apps/common         shared helpers, platform differences (platform.mjs)
 config              Corefile.tpl, mediamtx.yml.tpl
 scripts             setup, doctor, start/stop, firewall, autostart, OBS scenes
 tests               unit tests (npm test)

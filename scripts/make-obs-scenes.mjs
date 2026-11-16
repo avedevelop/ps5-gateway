@@ -6,13 +6,15 @@ import { writeFileSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { detectLanIp } from '../apps/common/lanip.mjs';
+import { obsScenesDir } from '../apps/common/platform.mjs';
 
 const pos = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const ru = process.argv.find((a) => a.startsWith('--lang='))?.slice(7) === 'ru'; // only affects the names of OBS's built-in transitions
 const ip = pos[0] || detectLanIp('');
 if (!ip) { console.error('Could not detect the PC IP. Pass it as the first argument.'); process.exit(1); }
 const FADE = ru ? 'Затухание' : 'Fade', CUT = ru ? 'Обрезка' : 'Cut';
-const dir = join(process.env.APPDATA, 'obs-studio', 'basic', 'scenes');
+const dir = obsScenesDir();
+if (!existsSync(dir)) { console.error('OBS settings folder not found: ' + dir + '\nInstall OBS Studio and start it once, then run this again.'); process.exit(1); }
 const out = join(dir, 'PS5.json');
 if (existsSync(out)) { console.error('PS5.json already exists, not overwriting: ' + out); process.exit(1); }
 

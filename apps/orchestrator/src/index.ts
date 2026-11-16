@@ -1,13 +1,14 @@
 import { createServer, type ServerResponse } from 'node:http';
-import { execFile, execFileSync } from 'node:child_process';
+import { execFile, spawn, type ChildProcess } from 'node:child_process';
 import { networkInterfaces, type NetworkInterfaceInfo } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import { ROOT, loadEnv } from './env.ts';
 import { mask, addSecret } from './mask.ts';
 import { Service } from './service.ts';
 import { detectLanIp } from '../../common/lanip.mjs';
+import { MAC, toolPath, findFfmpeg, isRunning, pingArgs, restrictFile, renderConfig, stopCmd } from '../../common/platform.mjs';
 
 // PS5 Gateway orchestrator: runs the DNS redirect (CoreDNS) and the RTMP ingest (MediaMTX), watches them,
 // and relays the PS5's stream to a stable local address for OBS: rtmp://<PC>:1935/ps5/game
@@ -22,7 +23,7 @@ if (!PS5_IP) console.error('PS5_IP is not set in .env: the gateway cannot tell w
 function renderConfigs(): void {
   for (const f of ['Corefile', 'mediamtx.yml']) {
     const tpl = readFileSync(resolve(ROOT, 'config', `${f}.tpl`), 'utf8');
-    writeFileSync(resolve(ROOT, 'config', f), tpl.replaceAll('__PC_IP__', PC_IP));
+    writeFileSync(resolve(ROOT, 'config', f), renderConfig(f, tpl, { pcIp: PC_IP, ps5Ip: PS5_IP }));
   }
 }
 renderConfigs();
@@ -31,14 +32,12 @@ const LOGS = resolve(ROOT, 'logs');
 mkdirSync(LOGS, { recursive: true });
 const RELAY_URL = `rtmp://${PC_IP}:1935/ps5/game`;
 
-function isRunning(image: string): boolean {
-  const out = execFileSync('tasklist', ['/fi', `imagename eq ${image}`, '/fo', 'csv', '/nh'], { encoding: 'utf8' });
-  return out.toLowerCase().includes(image.toLowerCase());
-}
+const FFMPEG = findFfmpeg(ROOT);
 if (!DRY) {
-  const busy = ['coredns.exe', 'mediamtx.exe'].filter(isRunning);
+  if (!FFMPEG) { console.error(MAC ? 'FFmpeg not found. Install it: brew install ffmpeg' : 'FFmpeg not found. Run: node scripts/setup.mjs'); process.exit(1); }
+  const busy = ['coredns', 'mediamtx'].filter(isRunning);
   if (busy.length) {
-    console.error(`Already running: ${busy.join(', ')}. Stop them first (scripts\\stop.ps1), or start with --dry.`);
+    console.error(`Already running: ${busy.join(', ')}. Stop them first (${stopCmd()}), or start with --dry.`);
     process.exit(1);
   }
 }
@@ -64,7 +63,7 @@ function ev(msg: string): void {
 // ---------- services ----------
 const dns = new Service({
   name: 'dns',
-  cmd: resolve(ROOT, 'bin/coredns/coredns.exe'),
+  cmd: toolPath(ROOT, 'coredns'),
   args: () => ['-conf', resolve(ROOT, 'config/Corefile')],
   cwd: resolve(ROOT, 'bin/coredns'),
   logFile: resolve(LOGS, 'dns.log'),
@@ -84,31 +83,42 @@ const dns = new Service({
   },
 });
 
+// macOS: keep the computer from idle-sleeping while the PS5 broadcasts (caffeinate ends with this process: -w)
+let awake: ChildProcess | null = null;
+function keepAwake(on: boolean): void {
+  if (!MAC || DRY) return;
+  if (on && !awake) {
+    try { awake = spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore' }); awake.on('error', () => {}); awake.on('exit', () => { awake = null; }); } catch {}
+  } else if (!on && awake) { awake.kill(); awake = null; }
+}
+
 function onPublish(path: string): void {
   st.publishing = true;
   st.publishPath = path;
   st.publishSince = Date.now();
   addSecret(path.split('/').pop() ?? ''); // the PS5's own key is masked everywhere
   ev('PS5 started broadcasting');
+  keepAwake(true);
   if (!DRY) setTimeout(() => { if (st.publishing) relay.start(); }, 1500);
 }
 function onUnpublish(): void {
   if (!st.publishing) return;
   st.publishing = false;
   ev('PS5 stopped broadcasting');
+  keepAwake(false);
   relay.stop();
 }
 
 const ingest = new Service({
   name: 'ingest',
-  cmd: resolve(ROOT, 'bin/mediamtx/mediamtx.exe'),
+  cmd: toolPath(ROOT, 'mediamtx'),
   args: () => [resolve(ROOT, 'config/mediamtx.yml')],
   cwd: resolve(ROOT, 'bin/mediamtx'),
   logFile: resolve(LOGS, 'ingest.log'),
   restartDelayMs: 3000,
   onLine: (l) => {
     let m = /\[RTMP\] \[conn ([\d.]+):\d+\] is publishing to path '([^']+)'/.exec(l);
-    if (m && m[1] === PS5_IP) onPublish(m[2]!);
+    if (m && m[1] === PS5_IP && m[2] !== 'ps5/game') onPublish(m[2]!); // ps5/game is our own relay, never the console
     m = /\[RTMP\] \[conn ([\d.]+):\d+\] closed/.exec(l);
     if (m && m[1] === PS5_IP) onUnpublish();
     return true;
@@ -118,14 +128,14 @@ const ingest = new Service({
 // Copies (no re-encoding) the PS5's stream to the fixed local address OBS reads. Nothing is sent to Twitch from here.
 const relay = new Service({
   name: 'relay',
-  cmd: resolve(ROOT, 'bin/ffmpeg/ffmpeg.exe'),
+  cmd: FFMPEG,
   args: () => [
     '-hide_banner', '-loglevel', 'warning', '-stats', '-rw_timeout', '15000000',
     '-i', `rtmp://${PC_IP}:1935/${st.publishPath}`,
     '-c', 'copy', '-f', 'flv', '-flvflags', 'no_duration_filesize',
     RELAY_URL,
   ],
-  cwd: resolve(ROOT, 'bin/ffmpeg'),
+  cwd: FFMPEG ? dirname(FFMPEG) : ROOT,
   logFile: resolve(LOGS, 'relay.log'),
   restartDelayMs: 3000,
   onLine: (l) => {
@@ -158,7 +168,7 @@ function checkNet(): void {
 }
 function pingPs5(): void {
   if (!PS5_IP) return;
-  execFile('ping', ['-n', '1', '-w', '1000', PS5_IP], { encoding: 'utf8' }, (_e, out) => {
+  execFile('ping', pingArgs(PS5_IP, 1000), { encoding: 'utf8' }, (_e, out) => {
     st.net.ps5Reachable = /TTL=/i.test(out ?? '');
     st.net.ps5CheckedAt = Date.now();
   });
@@ -170,11 +180,11 @@ setInterval(pingPs5, 15_000);
 
 // ---------- HTTP ----------
 const token = randomBytes(16).toString('hex');
-// the token lets local scripts act on the dashboard API; the file is git-ignored and readable only by your Windows user
+// the token lets local scripts act on the dashboard API; the file is git-ignored and readable only by your user
 const tokenFile = resolve(ROOT, '.token');
 if (!DRY) { // in --dry (a second instance on another port) the running orchestrator's token file is left alone
   writeFileSync(tokenFile, token, 'utf8');
-  try { execFileSync('icacls', [tokenFile, '/inheritance:r', '/grant:r', `${process.env.USERNAME}:(R,W)`], { stdio: 'ignore' }); } catch {}
+  restrictFile(tokenFile);
 }
 const page = () => readFileSync(resolve(ROOT, 'apps/orchestrator/public/index.html'), 'utf8').replace('__TOKEN__', token);
 
@@ -259,6 +269,7 @@ if (!DRY) {
   ev('Orchestrator started');
 }
 function shutdown(): void {
+  keepAwake(false);
   relay.stop();
   ingest.stop();
   dns.stop();
