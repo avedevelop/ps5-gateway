@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" role="img" aria-labelledby="t d">
   <title id="t">How PS5 Gateway works</title>
-  <desc id="d">The PS5 broadcast is redirected by DNS to your PC. MediaMTX receives it, a relay delivers it to OBS, and OBS streams to Twitch.</desc>
+  <desc id="d">The PS5 broadcast is redirected by DNS to your Windows PC or Mac. MediaMTX receives it, a relay delivers it to OBS, and OBS streams to Twitch.</desc>
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#8b98a9"/></marker>
     <style>
@@ -25,7 +25,7 @@
 
   <!-- PC -->
   <rect class="pc" x="238" y="40" width="470" height="220" rx="16"/>
-  <text class="cap" x="256" y="62">YOUR WINDOWS PC</text>
+  <text class="cap" x="256" y="62">YOUR PC (WINDOWS OR MAC)</text>
   <rect class="in" x="262" y="82" width="130" height="64" rx="10"/>
   <text class="t1" x="327" y="110" text-anchor="middle" style="font-size:16px">CoreDNS</text>
   <text class="t2" x="327" y="130" text-anchor="middle">DNS redirect</text>

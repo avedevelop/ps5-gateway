@@ -4,6 +4,24 @@ About 20 minutes. You will end up with the PS5's picture inside OBS, ready to st
 
 If you would rather have an AI assistant walk you through it, use the prompts in [AI-INSTALL.md](AI-INSTALL.md).
 
+## Fastest way: the installer
+
+Download the archive for your system from the [latest release](https://github.com/avedevelop/ps5-gateway/releases/latest) and unpack it:
+
+| System | Archive | Run |
+|---|---|---|
+| Windows 10 / 11 | `ps5-gateway-windows-<version>.zip` | double-click `installer\windows\Install-PS5-Gateway.cmd` |
+| macOS | `ps5-gateway-macos-<version>.tar.gz` | double-click `installer/macos/Install PS5 Gateway.command` |
+
+The installer asks for the PS5's address (step 2 below shows where to find it) and does steps 1 to 6 for you: it checks Node.js (offers to install it with winget on Windows or Homebrew on macOS), FFmpeg on macOS, creates `.env`, downloads the helper programs, creates the firewall rules on Windows (one UAC prompt), starts the gateway, runs `doctor` and creates the OBS scene. It changes nothing without asking and prints what is left to do by hand: the PS5's DNS and your stream key.
+
+Options, from a terminal: `install.ps1 -Ps5Ip 192.168.1.50 -Yes -SkipFirewall -NoScenes -Autostart -Check` on Windows, `install.sh --ps5-ip=192.168.1.50 --yes --no-obs --no-scenes --autostart --check` on macOS. `-Check` / `--check` only reports what is missing.
+
+- **macOS says the `.command` file cannot be opened** because it is from an unidentified developer: right-click it, choose Open, confirm. Or run `sh installer/macos/install.sh` in a terminal.
+- **Windows SmartScreen** warns about the `.cmd`: choose More info, then Run anyway. Both installers are plain text, read them first if you like.
+
+Prefer to do each step yourself? Read on.
+
 The steps below are written for Windows. **On a Mac**, follow [Installing on macOS](#installing-on-macos) for steps 1 to 5; steps 4 (PS5) and 6 (OBS) are the same on both.
 
 ## 0. Before you start

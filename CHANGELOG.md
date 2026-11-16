@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.1.0
+
+- **One-click installers** for Windows (`installer\windows\Install-PS5-Gateway.cmd`) and macOS (`installer/macos/Install PS5 Gateway.command`): check Node.js, FFmpeg and OBS, download the helper programs, create `.env`, set up the Windows firewall, start the gateway, run `doctor` and create the OBS scene. `-Check` / `--check` only report.
+- **CI** (GitHub Actions): unit tests on Linux, Windows and macOS, ShellCheck and PowerShell parsing, and an install-and-run job on fresh Windows and macOS machines driven by `tests/smoke.mjs` (test stream, DNS redirect, ingest, relay, key masking). Pushing a `v*` tag publishes a release with a Windows zip, a macOS tar.gz and checksums.
+- `scripts/stop.sh` now waits until the gateway has really exited.
+- The flow diagram says "your PC (Windows or Mac)".
 
 - **macOS support** (Apple silicon and Intel). Setup downloads the macOS builds of MediaMTX and CoreDNS and uses FFmpeg from Homebrew. New scripts: `scripts/start.sh`, `scripts/stop.sh`, `scripts/install-autostart.sh` (LaunchAgent). `npm start` and `npm stop` now work on both systems.
 - On macOS no firewall script is needed: the generated configs let only the PS5 and the Mac itself use DNS and RTMP. The Mac is kept from idle sleep while the PS5 broadcasts.

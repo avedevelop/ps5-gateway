@@ -79,9 +79,12 @@ The server answers only requests whose `Host` is `127.0.0.1:8787` or `localhost:
 
 ```
 apps/orchestrator   supervisor, relay and dashboard (TypeScript, no deps)
+installer/windows   one-click installer (install.ps1, Install-PS5-Gateway.cmd)
+installer/macos     one-click installer (install.sh, "Install PS5 Gateway.command")
+.github/workflows   CI (tests, lint, install-and-run on Windows and macOS) and release
 apps/common         shared helpers, platform differences (platform.mjs)
 config              Corefile.tpl, mediamtx.yml.tpl
 scripts             setup, doctor, start/stop, firewall, autostart, OBS scenes
-tests               unit tests (npm test)
+tests               unit tests (npm test) and smoke.mjs, an end-to-end check of a running gateway
 docs                guides
 ```

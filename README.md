@@ -7,6 +7,7 @@
 Redirect the PS5's built-in Twitch broadcast to your Windows PC or Mac, open it in OBS as a normal source, and stream from there with your own scenes, overlays and alerts.
 
 ![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)
+[![CI](https://github.com/avedevelop/ps5-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/avedevelop/ps5-gateway/actions/workflows/ci.yml)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-0078d4)
 ![Node](https://img.shields.io/badge/node-%E2%89%A5%2022.18-5fa04e)
 ![Dependencies](https://img.shields.io/badge/npm%20dependencies-0-brightgreen)
@@ -38,6 +39,19 @@ When the PS5 starts a broadcast it looks up a Twitch ingest address. PS5 Gateway
 | **Easy to set up** | One setup script, one `doctor` command that tells you what is wrong, and a ready OBS scene. |
 
 ## Quick start
+
+### One-click installer
+
+Download the archive for your system from the [latest release](https://github.com/avedevelop/ps5-gateway/releases/latest), unpack it and run the installer. It checks Node.js, FFmpeg and OBS, downloads the helper programs, creates the settings, starts the gateway, runs `doctor` and creates the OBS scene. It asks for the PS5's address and for permission before every step that changes your system.
+
+| | Download | Run |
+|---|---|---|
+| **Windows 10 / 11** | `ps5-gateway-windows-<version>.zip` | double-click `installer\windows\Install-PS5-Gateway.cmd` |
+| **macOS** (Apple silicon or Intel) | `ps5-gateway-macos-<version>.tar.gz` | double-click `installer/macos/Install PS5 Gateway.command` (first time: right-click > Open) |
+
+Prefer to see every step yourself? Use the commands below.
+
+### Step by step
 
 You need Windows 10 or 11 **or** macOS, [Node.js 24 LTS](https://nodejs.org), [OBS Studio](https://obsproject.com), and a PS5 on the same network as the computer.
 
@@ -87,6 +101,7 @@ A small local dashboard at `http://127.0.0.1:8787` shows whether the PS5 is broa
 
 ## What is included
 
+- **One-click installers** for Windows and macOS, tested by CI on both systems on every change: the CI installs the gateway on fresh Windows and macOS machines, sends a test stream and checks that it arrives at the address OBS reads.
 - **Setup** with pinned, checksum-verified downloads and automatic LAN address detection.
 - **`doctor`** that checks files, addresses, name-resolution speed, the DNS redirect, the RTMP port and the PS5's activity, and prints a fix for every problem it finds.
 - **Dashboard** with live relay stats and service restarts.

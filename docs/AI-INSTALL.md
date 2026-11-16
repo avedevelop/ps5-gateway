@@ -19,7 +19,7 @@ Read these files first, in this order, before running anything:
 Goal: the PS5 picture shows up in OBS as the "PS5" source.
 
 Rules:
-- Work step by step following docs/INSTALL.md (on a Mac: its section "Installing on
+- Prefer the one-click installer (installer/windows/install.ps1 or installer/macos/install.sh; run it with -Check / --check first). Otherwise work step by step following docs/INSTALL.md (on a Mac: its section "Installing on
   macOS"; use scripts/start.sh instead of start.ps1, and skip firewall.ps1). Use the project's own scripts
   (scripts/setup.mjs, scripts/firewall.ps1, scripts/start.ps1, scripts/doctor.mjs,
   scripts/make-obs-scenes.mjs). Do not invent other install methods.

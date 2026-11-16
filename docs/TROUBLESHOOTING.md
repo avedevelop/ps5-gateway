@@ -23,6 +23,10 @@ The PS5 now asks the PC for every name. If the gateway is not running, or the fi
 
 The router gave the PC a new address, so the PS5's DNS now points at nothing. Set the PS5's DNS to the PC's address again, and either remove `PC_LAN_IP` from `.env` (auto-detect) or update it. Restart the gateway. If your router lets you, a DHCP reservation for the PC (optional) prevents this.
 
+## The Windows installer cannot install Node.js
+
+The installer uses `winget`, which older Windows 10 builds lack. Install Node.js 24 LTS from <https://nodejs.org>, open a new window and run the installer again. If Windows SmartScreen blocks `Install-PS5-Gateway.cmd`, choose More info > Run anyway, or run `powershell -ExecutionPolicy Bypass -File installer\windows\install.ps1`.
+
 ## OBS: the PS5 source is black
 
 First check that the PS5 really sends picture. In the source's Properties window the preview should show the game. If it does, but the main preview is black, the source has no size on the scene:
@@ -73,6 +77,8 @@ Delete `.env` if you want setup to recreate it, then run `node scripts\setup.mjs
 
 ## macOS
 
+- **The installer says Homebrew is missing.** Install it from <https://brew.sh> (one command from that page), then run the installer again. Or install Node.js from <https://nodejs.org> and FFmpeg yourself and run `node scripts/setup.mjs`.
+- **macOS will not open the `.command` file** (unidentified developer). Right-click it, Open, confirm; or run `sh installer/macos/install.sh`.
 - **OBS closes right after it opens (macOS 27).** OBS 32.2.2 crashes inside Qt when it sets the mouse cursor, in normal and safe mode alike, and the crash report mentions `QWidget::setCursor` and `CGImageCreate`. Use OBS 33 or newer (`brew install --cask obs`); 33.0.1 starts fine.
 - **The PS5 source is wider than the canvas on a MacBook.** OBS takes the screen's shape as its canvas (for example 2940x1912, which is 16:10), so a 16:9 picture is cut at the sides. In OBS Settings > Video set Base (Canvas) and Output (Scaled) resolution to 1920x1080, then select the source and press Cmd+F.
 - **`FFmpeg not found`**: `brew install ffmpeg`, then start again.
