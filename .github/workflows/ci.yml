@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm test
+
+  lint-shell:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and ShellCheck
+        run: |
+          for f in scripts/*.sh installer/macos/install.sh; do sh -n "$f"; done
+          bash -n "installer/macos/Install PS5 Gateway.command"
+          shellcheck scripts/*.sh installer/macos/install.sh "installer/macos/Install PS5 Gateway.command"
+
+  lint-powershell:
+    name: PowerShell scripts
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse every .ps1
+        shell: pwsh
+        run: |
+          $bad = 0
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+            $errors = $null; $tokens = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors)
+            if ($errors.Count) { $bad++; $errors | ForEach-Object { Write-Host "$($_.Extent.File):$($_.Extent.StartLineNumber): $($_.Message)" } }
+            else { Write-Host "ok  $($_.FullName)" }
+          }
+          if ($bad) { exit 1 }
+
+  smoke:
+    name: Install and run (${{ matrix.os }})
+    needs: [unit]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # The runner itself plays the PS5: its own LAN address is given as the PS5 address.
+      - name: Installer (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ip = node -e "import('./apps/common/lanip.mjs').then(m=>console.log(m.detectLanIp('')))"
+          Write-Host "runner address: $ip"
+          if (-not $ip) { throw 'no LAN address on the runner' }
+          powershell -NoProfile -ExecutionPolicy Bypass -File installer\windows\install.ps1 -Check
+          if ($LASTEXITCODE -ne 0) { throw 'installer -Check failed' }
+          powershell -NoProfile -ExecutionPolicy Bypass -File installer\windows\install.ps1 -Yes -Ps5Ip $ip -SkipFirewall -NoScenes
+          if ($LASTEXITCODE -ne 0) { throw 'installer failed' }
+
+      - name: Installer (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          ip=$(node -e "import('./apps/common/lanip.mjs').then(m=>console.log(m.detectLanIp('')))")
+          echo "runner address: $ip"
+          [ -n "$ip" ] || { echo 'no LAN address on the runner'; exit 1; }
+          sh installer/macos/install.sh --check || true
+          sh installer/macos/install.sh --yes --ps5-ip="$ip" --no-obs --no-scenes
+
+      - name: Smoke test (DNS, ingest, relay)
+        run: node tests/smoke.mjs
+
+      - name: Stop the gateway
+        if: always()
+        run: node scripts/run.mjs stop
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.os }}
+          path: logs/
+          if-no-files-found: ignore

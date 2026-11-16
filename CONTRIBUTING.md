@@ -18,6 +18,25 @@ Thanks for wanting to help. This is a hobby project, so reviews can be slow, but
 - **Platform differences go into `apps/common/platform.mjs`**, not into `if (process.platform ...)` scattered around. A change must keep both Windows and macOS working; say in the pull request which one you could not test.
 - **Do not restart the gateway while someone is live**; it ends the PS5 broadcast. Test with `--dry` as described below.
 
+## Continuous integration
+
+Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+- **Unit tests** on Linux, Windows and macOS (`npm test`).
+- **Shell and PowerShell lint**: ShellCheck for `*.sh` and the `.command` file, and a PowerShell parser pass over every `.ps1`.
+- **Install and run** on a fresh Windows and a fresh macOS machine: the real installer runs, then `tests/smoke.mjs` publishes a test stream the way the PS5 would and checks the DNS redirect, the ingest, the relay address OBS reads, the services and that the stream key stays out of the logs. The runner plays the PS5, so no console is needed. You can run the same check on your own machine:
+
+  ```
+  node scripts/setup.mjs --yes --ps5-ip=<this computer's LAN address>
+  node scripts/run.mjs start
+  node tests/smoke.mjs
+  node scripts/run.mjs stop
+  ```
+
+A release is made by pushing a tag: `git tag v1.2.3 && git push origin v1.2.3`. [`release.yml`](.github/workflows/release.yml) runs the tests and attaches the Windows zip and the macOS tar.gz (with checksums) to a GitHub release.
+
+Installer rules: `*.ps1` and `*.cmd` stay ASCII (a test checks it), the macOS `.sh` and `.command` files keep their executable bit, and an installer must never change the system without asking (the `--yes` / `-Yes` flag is the only exception).
+
 ## Development setup
 
 ```powershell

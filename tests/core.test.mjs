@@ -92,3 +92,32 @@ test('renderConfig on macOS without a PS5 address: only this computer is allowed
   const core = renderConfig('Corefile', tpl('Corefile'), { pcIp: '192.168.1.20', ps5Ip: '', win: false });
   assert.match(core, /allow net 192\.168\.1\.20 127\.0\.0\.1 ::1/);
 });
+
+// ---------- scripts that Windows PowerShell 5.1 reads ----------
+import { readdirSync } from 'node:fs';
+function walkFiles(dir, out = []) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (['node_modules', '.git', 'bin', 'logs', 'dl'].includes(e.name)) continue;
+    const p = join(dir, e.name);
+    e.isDirectory() ? walkFiles(p, out) : out.push(p);
+  }
+  return out;
+}
+
+test('every .ps1 and .cmd is ASCII (PowerShell 5.1 reads UTF-8 without a BOM as ANSI)', () => {
+  const files = walkFiles(ROOT).filter((f) => /\.(ps1|cmd)$/i.test(f));
+  assert.ok(files.length >= 6, `found ${files.length} Windows scripts`);
+  for (const f of files) {
+    const bad = [...readFileSync(f)].findIndex((b) => b > 127);
+    assert.equal(bad, -1, `${f} has a non-ASCII byte at offset ${bad}`);
+  }
+});
+
+test('installers exist for both systems and the mac ones are executable', async () => {
+  const { statSync } = await import('node:fs');
+  for (const f of ['installer/windows/install.ps1', 'installer/windows/Install-PS5-Gateway.cmd', 'installer/macos/install.sh', 'installer/macos/Install PS5 Gateway.command'])
+    assert.ok(readFileSync(join(ROOT, f), 'utf8').length > 100, f);
+  if (process.platform !== 'win32')
+    for (const f of ['installer/macos/install.sh', 'installer/macos/Install PS5 Gateway.command', 'scripts/start.sh', 'scripts/stop.sh', 'scripts/install-autostart.sh'])
+      assert.ok(statSync(join(ROOT, f)).mode & 0o100, `${f} must be executable`);
+});

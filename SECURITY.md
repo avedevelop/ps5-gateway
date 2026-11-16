@@ -20,6 +20,10 @@ PS5 Gateway is a home-network hobby tool. It runs a DNS server and an RTMP serve
 - Do not port-forward any of these ports on your router. Do not run this on a shared or public network, and do not tell other devices to use your PC as DNS.
 - The DNS server answers only a small set of Twitch ingest names with the PC's address; everything else is forwarded to public resolvers (1.1.1.1 and 8.8.8.8).
 
+## Installers
+
+The installers (`installer/windows/install.ps1`, `installer/macos/install.sh`) are plain text; read them before running. They only call this project's own scripts, `winget` or Homebrew (to install Node.js, FFmpeg and, only if you say yes, OBS), and on Windows ask for Administrator rights once, for the firewall script. They send nothing anywhere. Release archives come with `SHA256SUMS.txt`.
+
 ## Downloads
 
 `scripts\setup.mjs` fetches FFmpeg, MediaMTX and CoreDNS from their official release locations and verifies each file against the checksum published next to it before extracting. MediaMTX and CoreDNS are pinned to specific versions. FFmpeg publishes rolling builds, so its checksum is read from the same site at download time.
