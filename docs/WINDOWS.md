@@ -63,7 +63,7 @@ On the PS5:
 
 1. On the PS5 press **Create › Broadcast › Twitch** and go live.
 2. The app changes to **PS5 is broadcasting** and shows frames per second, megabits and the time.
-3. In OBS pick the scene collection **PS5** (the app creates it), enter your stream key under *Settings › Stream* and press **Start Streaming** when you are ready. Nothing is public until you do.
+3. In OBS you need a scene with the PS5 as a source. The quickest way: in the app folder run `node scripts\make-obs-scenes.mjs <PC address>` once (OBS must have been started before), restart OBS and pick the scene collection **PS5**. The desktop app itself does not create it. By hand instead: *Guide › Set up OBS* in the app shows the steps (a Media Source with the address from the Home card, *Local File* off). Then enter your stream key under *Settings › Stream* and press **Start Streaming** when you are ready. Nothing is public until you do.
 
 <table>
 <tr>
