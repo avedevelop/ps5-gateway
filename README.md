@@ -56,7 +56,7 @@ Download the archive for your system from the [latest release](https://github.co
 | | Download | Run |
 |---|---|---|
 | **Windows 10 / 11** | `ps5-gateway-windows-<version>.zip` | double-click `PS5 Gateway.exe` (the app), or `installer\windows\Install-PS5-Gateway.cmd` (the script installer) |
-| **macOS** (Apple silicon or Intel) | `ps5-gateway-macos-<version>.tar.gz` | double-click `installer/macos/Install PS5 Gateway.command` (first time: right-click > Open) |
+| **macOS** (Apple silicon or Intel) | `ps5-gateway-macos-<version>.tar.gz` | double-click `installer/macos/Install PS5 Gateway.command` (first time on macOS 15+: Done, then System Settings > Privacy & Security > Open Anyway) |
 
 Prefer to see every step yourself? Use the commands below.
 
@@ -110,7 +110,7 @@ The release archives contain a small app on top of the gateway: **PS5 Gateway.ex
 - **Keep it next to `scripts/`:** the app uses the project folder it sits in. Do not move it out of that folder.
 - **Stays in the background.** Closing the window only hides it; the app lives in the notification area (Windows) or the menu bar (macOS), and the gateway keeps running. *Quit* in that menu closes the app. Switching the gateway off is a separate, confirmed step.
 - **Windows asks for permission once** during setup (the firewall step), so that only your PS5 can reach the gateway.
-- **Not signed yet.** Windows SmartScreen shows "More info > Run anyway"; on macOS use right-click > Open the first time. The guides show how.
+- **Not signed yet.** Windows SmartScreen shows "More info > Run anyway"; on macOS 15 and newer the first launch needs System Settings > Privacy & Security > Open Anyway (older macOS: right-click > Open). The guides show how.
 - **Updates:** Settings > Updates checks the latest release (it only contacts GitHub, nothing about you is sent) and replaces the files in place. Your settings, downloads and logs are kept.
 - **Build it yourself:** `scripts\build-app.ps1` on Windows or `sh scripts/build-app.sh` on a Mac, with [Rust](https://rustup.rs) installed. For development run `sh app/dev.sh` (macOS). The pictures in the docs are made by `node tools/screenshots.mjs`.
 

@@ -26,9 +26,17 @@
 
 1. Open the [latest release](https://github.com/avedevelop/ps5-gateway/releases/latest) and download **`ps5-gateway-macos-<version>.tar.gz`**.
 2. Unpack it into a folder you keep, for example `~/ps5-gateway`. **Not** into Desktop, Documents or Downloads: macOS does not let background programs read those without asking.
-3. Right-click **PS5 Gateway.app** › **Open**. This is needed the first time only, because the app is not signed with an Apple developer certificate.
+3. Double-click **PS5 Gateway.app**. The first time macOS refuses, because the app is not signed with an Apple developer certificate yet (see the box below). This is needed once only.
 
-> **macOS says the app is damaged or cannot be opened.** Open Terminal in that folder and run `xattr -dr com.apple.quarantine .` once, then open the app again.
+> **"PS5 Gateway" Not Opened. Apple could not verify it is free of malware.** This is macOS's normal answer to an app from outside the App Store, and the window has no *Open* button. Do this:
+>
+> 1. Click **Done** (not *Move to Trash*).
+> 2. Open **System Settings › Privacy & Security** and scroll down to *Security*. It says **"PS5 Gateway" was blocked to protect your Mac**.
+> 3. Click **Open Anyway**, confirm with your password or Touch ID, then **Open Anyway** once more.
+>
+> On macOS 14 and older the quick way still works: right-click the app › **Open**. If you prefer the Terminal, one command does the same on every version: `xattr -dr com.apple.quarantine "PS5 Gateway.app"` (run it in the folder with the app).
+
+> **macOS says the app is damaged.** Open Terminal in that folder and run `xattr -dr com.apple.quarantine .` once, then open the app again.
 >
 > Keep the app **next to the `scripts` folder**: it works with the project folder it sits in. Do not move the `.app` out of it.
 

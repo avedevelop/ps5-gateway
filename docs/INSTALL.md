@@ -17,7 +17,7 @@ The installer asks for the PS5's address (step 2 below shows where to find it) a
 
 Options, from a terminal: `install.ps1 -Ps5Ip 192.168.1.50 -Yes -SkipFirewall -NoScenes -Autostart -Check` on Windows, `install.sh --ps5-ip=192.168.1.50 --yes --no-obs --no-scenes --autostart --check` on macOS. `-Check` / `--check` only reports what is missing.
 
-- **macOS says the `.command` file cannot be opened** because it is from an unidentified developer: right-click it, choose Open, confirm. Or run `sh installer/macos/install.sh` in a terminal.
+- **macOS says the `.command` file cannot be opened** because it is from an unidentified developer: on macOS 15 and newer click **Done**, then open **System Settings › Privacy & Security** and click **Open Anyway** (on macOS 14 and older: right-click it, choose Open). Or run `sh installer/macos/install.sh` in a terminal, which needs no permission.
 - **Windows SmartScreen** warns about the `.cmd`: choose More info, then Run anyway. Both installers are plain text, read them first if you like.
 
 Prefer to do each step yourself? Read on.
