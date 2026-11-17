@@ -1,6 +1,6 @@
 {
   "name": "ps5-gateway",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Stream your PS5 into OBS over your home network: DNS redirect of the console's Twitch broadcast to your PC, local RTMP relay, OBS scene generator.",
   "private": true,
   "type": "module",
