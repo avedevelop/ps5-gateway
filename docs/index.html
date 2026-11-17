@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PS5 Gateway: your PS5's picture in OBS</title>
+<meta name="description" content="Send the PS5's built-in Twitch broadcast to your Windows PC or Mac and open it in OBS. No capture card. Free and open source.">
+<meta property="og:title" content="PS5 Gateway">
+<meta property="og:description" content="Your PS5's picture in OBS. No capture card. Free and open source.">
+<meta property="og:image" content="https://avedevelop.github.io/ps5-gateway/images/win-en-home-live.png">
+<meta name="theme-color" content="#0D1117">
+<style>
+@font-face { font-family: 'Geist'; font-style: normal; font-weight: 400 800; font-display: swap; src: url('assets/fonts/geist-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Geist'; font-style: normal; font-weight: 400 800; font-display: swap; src: url('assets/fonts/geist-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Geist Mono'; font-style: normal; font-weight: 500 700; font-display: swap; src: url('assets/fonts/geist-mono-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+2000-206F, U+2212; }
+
+:root {
+  --bg: #0D1117; --surface: #161B22; --line: #222A33;
+  --ink: #E6EDF3; --ink2: #8B98A5;
+  --accent: #3DDC97; --on-accent: #04231A; --soft: #12332A;
+  --warn: #F5A524; --warn-bg: #2A2110; --warn-text: #FFC766;
+  --r-card: 22px 4px 4px 4px; --r-tile: 16px 4px 4px 4px; --r-hint: 14px 3px 3px 3px; --r-btn: 10px 3px 3px 3px;
+  --font: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif; --mono: 'Geist Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 500 16px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+
+/* top bar */
+.top { display: flex; align-items: center; gap: 14px; padding: 18px 0; }
+.mark { width: 34px; height: 34px; border-radius: 10px 3px 3px 3px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-weight: 800; font-size: 19px; }
+.brand { font-weight: 700; font-size: 17px; letter-spacing: -.01em; text-decoration: none; }
+.top nav { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.top nav a, .lang { color: var(--ink2); text-decoration: none; font-size: 14px; padding: 8px 12px; border-radius: 8px 3px 3px 3px; border: 0; background: none; font-family: inherit; font-weight: 600; cursor: pointer; }
+.top nav a:hover, .lang:hover { color: var(--ink); background: var(--surface); }
+
+/* hero */
+.hero { padding: 40px 0 28px; text-align: center; }
+h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.05; letter-spacing: -.025em; font-weight: 800; margin: 0 0 16px; }
+.lead { color: var(--ink2); font-size: clamp(16px, 2.2vw, 19px); max-width: 640px; margin: 0 auto; }
+.dl { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 760px; margin: 34px auto 0; text-align: left; }
+.dlcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 10px; }
+.dlcard.main { border-color: #1d5a43; }
+.dlcard h2 { margin: 0; font-size: 18px; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.tag { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--soft); padding: 2px 8px; border-radius: 6px 2px 2px 2px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: var(--r-btn); font: 700 15px var(--font); text-decoration: none; background: var(--soft); color: var(--accent); border: 0; cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn:hover { filter: brightness(1.08); }
+.meta { color: var(--ink2); font-size: 13px; font-family: var(--mono); font-weight: 500; min-height: 20px; }
+.warn { background: var(--warn-bg); color: var(--warn-text); border-radius: var(--r-hint); padding: 10px 12px; font-size: 13px; line-height: 1.45; }
+.warn b { font-weight: 700; }
+.sub { margin-top: 16px; color: var(--ink2); font-size: 14px; }
+.sub a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.sub a:hover { text-decoration: underline; }
+
+/* shot */
+.shot { margin: 38px auto 0; max-width: 880px; }
+.shot img { width: 100%; height: auto; display: block; border-radius: var(--r-card); border: 1px solid var(--line); background: var(--surface); }
+
+/* sections */
+section { padding: 52px 0 6px; }
+h2.sec { font-size: clamp(24px, 3.4vw, 32px); letter-spacing: -.02em; line-height: 1.15; margin: 0 0 8px; font-weight: 800; }
+.sec-p { color: var(--ink2); margin: 0 0 24px; max-width: 640px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-tile); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.step img { width: 100%; height: auto; border-radius: 12px 3px 3px 3px; display: block; border: 1px solid var(--line); }
+.step .n { width: 26px; height: 26px; border-radius: 8px 3px 3px 3px; background: var(--soft); color: var(--accent); font-weight: 800; display: grid; place-items: center; font-size: 14px; }
+.step h3 { margin: 0; font-size: 16px; letter-spacing: -.01em; }
+.step p { margin: 0; color: var(--ink2); font-size: 14px; }
+.facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-tile); padding: 16px 18px; }
+.fact b { display: block; margin-bottom: 4px; font-size: 15px; }
+.fact span { color: var(--ink2); font-size: 14px; }
+.need { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 20px; color: var(--ink2); font-size: 15px; }
+.need li::before { content: '✓'; color: var(--accent); font-weight: 800; margin-right: 10px; }
+.need a { color: var(--ink); }
+
+footer { margin-top: 56px; border-top: 1px solid var(--line); padding: 26px 0 40px; color: var(--ink2); font-size: 13px; }
+footer .row { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-bottom: 12px; }
+footer a { text-decoration: none; font-weight: 600; color: var(--ink); }
+footer a:hover { color: var(--accent); }
+footer p { margin: 0; max-width: 720px; }
+
+@media (max-width: 760px) {
+  .dl, .steps, .facts, .need { grid-template-columns: 1fr; }
+  .top nav a.hide-s { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="mark" aria-hidden="true">P</span>
+    <a class="brand" href="#top">PS5 Gateway</a>
+    <nav aria-label="Links">
+      <a class="hide-s" href="#how" data-t="nav_how">How it works</a>
+      <a class="hide-s" href="https://github.com/avedevelop/ps5-gateway#readme">GitHub</a>
+      <button class="lang" id="lang" type="button" aria-label="Language">RU</button>
+    </nav>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <h1 data-t="h1">Your PS5's picture in OBS.<br>No capture card.</h1>
+      <p class="lead" data-t="lead">PS5 Gateway sends the console's built-in Twitch broadcast to your PC or Mac. You open it in OBS as an ordinary source and stream with your own scenes, overlays and alerts.</p>
+
+      <div class="dl" id="dl">
+        <div class="dlcard" id="card-win">
+          <h2>Windows <span class="tag" id="tag-win" hidden data-t="yours">your system</span></h2>
+          <a class="btn" id="btn-win" href="https://github.com/avedevelop/ps5-gateway/releases/latest" data-t="dl_win">Download for Windows</a>
+          <div class="meta" id="meta-win">Windows 10 / 11</div>
+          <div class="warn"><b data-t="warn_h">Before you open it:</b> <span data-t="warn_win">Windows may say “Windows protected your PC”, because the app is not signed with a paid certificate yet. Click <b>More info</b>, then <b>Run anyway</b>.</span></div>
+        </div>
+        <div class="dlcard" id="card-mac">
+          <h2>macOS <span class="tag" id="tag-mac" hidden data-t="yours">your system</span></h2>
+          <a class="btn" id="btn-mac" href="https://github.com/avedevelop/ps5-gateway/releases/latest" data-t="dl_mac">Download for Mac</a>
+          <div class="meta" id="meta-mac">Apple silicon / Intel</div>
+          <div class="warn"><b data-t="warn_h">Before you open it:</b> <span data-t="warn_mac">The first time, right-click the app and choose <b>Open</b>, because it is not signed with an Apple developer certificate yet.</span></div>
+        </div>
+      </div>
+      <p class="sub"><span data-t="sub">Free and open source (MIT).</span> <a href="https://github.com/avedevelop/ps5-gateway" data-t="gh">View on GitHub →</a></p>
+
+      <div class="shot"><img id="hero-img" src="images/win-en-home-live.png" alt="PS5 Gateway: the PS5 is broadcasting" width="1920" height="1272"></div>
+    </div>
+
+    <section id="how">
+      <h2 class="sec" data-t="how_h">Five minutes from download to broadcast</h2>
+      <p class="sec-p" data-t="how_p">The app walks you through the setup. Nothing is public until you press Start Streaming in OBS.</p>
+      <div class="steps">
+        <div class="step"><img id="img-1" src="images/win-en-installing.png" alt="" loading="lazy"><span class="n">1</span><h3 data-t="s1_h">Open the app</h3><p data-t="s1_p">It downloads its helper programs with a real progress bar and sets up the firewall for your PS5 only.</p></div>
+        <div class="step"><img id="img-2" src="images/win-en-dns.png" alt="" loading="lazy"><span class="n">2</span><h3 data-t="s2_h">Type two numbers on the PS5</h3><p data-t="s2_p">The app shows the DNS to enter in the console's network settings. Then restart the PS5 completely.</p></div>
+        <div class="step"><img id="img-3" src="images/win-en-home-live.png" alt="" loading="lazy"><span class="n">3</span><h3 data-t="s3_h">Start the broadcast</h3><p data-t="s3_p">Create › Broadcast › Twitch on the PS5. The picture appears in OBS, ready for your scenes.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sec" data-t="why_h">Why people use it</h2>
+      <div class="facts" style="margin-top:20px">
+        <div class="fact"><b data-t="f1_h">No hardware</b><span data-t="f1_p">The PS5 sends its stream over your home network. No capture card, no HDMI splitter.</span></div>
+        <div class="fact"><b data-t="f2_h">Real OBS</b><span data-t="f2_p">Scenes, filters, chat, alerts, recording. Everything OBS does, also with Streamlabs Desktop.</span></div>
+        <div class="fact"><b data-t="f3_h">You stay in control</b><span data-t="f3_p">The gateway never sends anything to Twitch. Nothing is public until you start streaming in OBS.</span></div>
+        <div class="fact"><b data-t="f4_h">Quiet in the background</b><span data-t="f4_p">Lives in the tray or menu bar, keeps the computer awake during a broadcast, warns you if the PS5 uses the wrong DNS.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="sec" data-t="need_h">What you need</h2>
+      <ul class="need" style="margin-top:20px">
+        <li data-t="n1">Windows 10 / 11 or a Mac (Apple silicon or Intel)</li>
+        <li><span data-t="n2">A PS5 on the same home network as the computer</span></li>
+        <li><a href="https://nodejs.org" data-t="n3">Node.js 24 LTS</a> <span data-t="n3b">(the gateway runs on it)</span></li>
+        <li><a href="https://obsproject.com">OBS Studio</a> <span data-t="n4">or Streamlabs Desktop</span></li>
+      </ul>
+      <p class="sub" style="margin-top:22px"><span data-t="guides">Step by step with pictures:</span>
+        <a id="g-win" href="https://github.com/avedevelop/ps5-gateway/blob/main/docs/WINDOWS.md">Windows</a> ·
+        <a id="g-mac" href="https://github.com/avedevelop/ps5-gateway/blob/main/docs/MACOS.md">macOS</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="row">
+      <a href="https://github.com/avedevelop/ps5-gateway">GitHub</a>
+      <a href="https://github.com/avedevelop/ps5-gateway/releases">Releases</a>
+      <a href="https://github.com/avedevelop/ps5-gateway/issues" data-t="issues">Report a problem</a>
+      <a href="https://github.com/avedevelop">avedevelop</a>
+    </div>
+    <p data-t="legal">MIT license. Not affiliated with Sony Interactive Entertainment, Twitch, OBS Project or any other company named here; all names belong to their owners. The gateway only changes how your own console reaches your own computer on your own network.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var REPO = 'avedevelop/ps5-gateway';
+  var T = {
+    en: {
+      nav_how: 'How it works', yours: 'your system',
+      h1: "Your PS5's picture in OBS.<br>No capture card.",
+      lead: 'PS5 Gateway sends the console’s built-in Twitch broadcast to your PC or Mac. You open it in OBS as an ordinary source and stream with your own scenes, overlays and alerts.',
+      dl_win: 'Download for Windows', dl_mac: 'Download for Mac',
+      warn_h: 'Before you open it:',
+      warn_win: 'Windows may say “Windows protected your PC”, because the app is not signed with a paid certificate yet. Click <b>More info</b>, then <b>Run anyway</b>.',
+      warn_mac: 'The first time, right-click the app and choose <b>Open</b>, because it is not signed with an Apple developer certificate yet.',
+      sub: 'Free and open source (MIT).', gh: 'View on GitHub →',
+      how_h: 'Five minutes from download to broadcast', how_p: 'The app walks you through the setup. Nothing is public until you press Start Streaming in OBS.',
+      s1_h: 'Open the app', s1_p: 'It downloads its helper programs with a real progress bar and sets up the firewall for your PS5 only.',
+      s2_h: 'Type two numbers on the PS5', s2_p: 'The app shows the DNS to enter in the console’s network settings. Then restart the PS5 completely.',
+      s3_h: 'Start the broadcast', s3_p: 'Create › Broadcast › Twitch on the PS5. The picture appears in OBS, ready for your scenes.',
+      why_h: 'Why people use it',
+      f1_h: 'No hardware', f1_p: 'The PS5 sends its stream over your home network. No capture card, no HDMI splitter.',
+      f2_h: 'Real OBS', f2_p: 'Scenes, filters, chat, alerts, recording. Everything OBS does, also with Streamlabs Desktop.',
+      f3_h: 'You stay in control', f3_p: 'The gateway never sends anything to Twitch. Nothing is public until you start streaming in OBS.',
+      f4_h: 'Quiet in the background', f4_p: 'Lives in the tray or menu bar, keeps the computer awake during a broadcast, warns you if the PS5 uses the wrong DNS.',
+      need_h: 'What you need',
+      n1: 'Windows 10 / 11 or a Mac (Apple silicon or Intel)', n2: 'A PS5 on the same home network as the computer', n3: 'Node.js 24 LTS', n3b: '(the gateway runs on it)', n4: 'or Streamlabs Desktop',
+      guides: 'Step by step with pictures:', issues: 'Report a problem',
+      legal: 'MIT license. Not affiliated with Sony Interactive Entertainment, Twitch, OBS Project or any other company named here; all names belong to their owners. The gateway only changes how your own console reaches your own computer on your own network.'
+    },
+    ru: {
+      nav_how: 'Как это работает', yours: 'ваша система',
+      h1: 'Картинка с PS5 в OBS.<br>Без карты захвата.',
+      lead: 'PS5 Gateway отправляет встроенную трансляцию консоли на Twitch на ваш компьютер или Mac. Вы открываете её в OBS как обычный источник и стримите со своими сценами, оверлеями и алертами.',
+      dl_win: 'Скачать для Windows', dl_mac: 'Скачать для Mac',
+      warn_h: 'Перед открытием:',
+      warn_win: 'Windows может написать «Система Windows защитила ваш компьютер»: у приложения пока нет платного сертификата подписи. Нажмите <b>Подробнее</b>, затем <b>Выполнить в любом случае</b>.',
+      warn_mac: 'В первый раз щёлкните приложение правой кнопкой и выберите <b>Открыть</b>: у него пока нет сертификата разработчика Apple.',
+      sub: 'Бесплатно и с открытым кодом (MIT).', gh: 'Смотреть на GitHub →',
+      how_h: 'Пять минут от скачивания до трансляции', how_p: 'Приложение проведёт вас по установке. Пока вы не нажали «Начать трансляцию» в OBS, ничего не публично.',
+      s1_h: 'Откройте приложение', s1_p: 'Оно скачает свои вспомогательные программы с настоящим прогрессом и настроит брандмауэр только для вашей PS5.',
+      s2_h: 'Введите два числа на PS5', s2_p: 'Приложение покажет DNS для сетевых настроек консоли. Потом полностью перезагрузите PS5.',
+      s3_h: 'Начните трансляцию', s3_p: 'На PS5: Create › Broadcast › Twitch. Картинка появится в OBS, готовая для ваших сцен.',
+      why_h: 'Зачем это нужно',
+      f1_h: 'Без железа', f1_p: 'PS5 шлёт поток по домашней сети. Ни карты захвата, ни HDMI-сплиттера.',
+      f2_h: 'Настоящий OBS', f2_p: 'Сцены, фильтры, чат, алерты, запись. Всё, что умеет OBS, в том числе со Streamlabs Desktop.',
+      f3_h: 'Вы всё контролируете', f3_p: 'Шлюз сам ничего не отправляет на Twitch. Пока вы не начали трансляцию в OBS, ничего не публично.',
+      f4_h: 'Тихо работает в фоне', f4_p: 'Живёт в трее или строке меню, не даёт компьютеру заснуть во время трансляции и предупредит, если PS5 использует не тот DNS.',
+      need_h: 'Что понадобится',
+      n1: 'Windows 10 / 11 или Mac (Apple silicon или Intel)', n2: 'PS5 в той же домашней сети, что и компьютер', n3: 'Node.js 24 LTS', n3b: '(на нём работает шлюз)', n4: 'или Streamlabs Desktop',
+      guides: 'Пошагово с картинками:', issues: 'Сообщить о проблеме',
+      legal: 'Лицензия MIT. Проект не связан с Sony Interactive Entertainment, Twitch, OBS Project и другими упомянутыми компаниями; все названия принадлежат их владельцам. Шлюз меняет только то, как ваша консоль находит ваш компьютер в вашей сети.'
+    }
+  };
+  var G = { en: { win: 'WINDOWS.md', mac: 'MACOS.md' }, ru: { win: 'WINDOWS.ru.md', mac: 'MACOS.ru.md' } };
+
+  var ua = navigator.userAgent || '';
+  var os = /Mac/i.test(ua) && !/iPhone|iPad/i.test(ua) ? 'mac' : /Windows/i.test(ua) ? 'win' : 'win';
+  var detected = /Mac/i.test(ua) && !/iPhone|iPad/i.test(ua) ? 'mac' : /Windows/i.test(ua) ? 'win' : '';
+  var lang = 'en';
+  try { lang = localStorage.getItem('lang') || ((navigator.language || 'en').slice(0, 2) === 'ru' ? 'ru' : 'en'); } catch (e) { lang = (navigator.language || 'en').slice(0, 2) === 'ru' ? 'ru' : 'en'; }
+
+  function $(s) { return document.querySelector(s); }
+  function apply() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-t]').forEach(function (e) { var v = T[lang][e.getAttribute('data-t')]; if (v) e.innerHTML = v; });
+    $('#lang').textContent = lang === 'ru' ? 'EN' : 'RU';
+    ['win', 'mac'].forEach(function (k) { $('#g-' + k).href = 'https://github.com/' + REPO + '/blob/main/docs/' + G[lang][k]; });
+    var p = os;
+    $('#hero-img').src = 'images/' + p + '-' + lang + '-home-live.png';
+    $('#img-1').src = 'images/' + p + '-' + lang + '-installing.png';
+    $('#img-2').src = 'images/' + p + '-' + lang + '-dns.png';
+    $('#img-3').src = 'images/' + p + '-' + lang + '-home-live.png';
+    $('#hero-img').alt = lang === 'ru' ? 'PS5 Gateway: PS5 вещает' : 'PS5 Gateway: the PS5 is broadcasting';
+    // the system we detected gets the filled button and goes first
+    ['win', 'mac'].forEach(function (k) {
+      $('#btn-' + k).classList.toggle('primary', k === detected);
+      $('#card-' + k).classList.toggle('main', k === detected);
+      $('#tag-' + k).hidden = k !== detected;
+    });
+    if (detected === 'mac') { var dl = $('#dl'); dl.insertBefore($('#card-mac'), $('#card-win')); }
+  }
+  $('#lang').addEventListener('click', function () { lang = lang === 'ru' ? 'en' : 'ru'; try { localStorage.setItem('lang', lang); } catch (e) {} apply(); });
+  apply();
+
+  // the real file names carry the version, so ask GitHub for the latest release and point the buttons at its files
+  fetch('https://api.github.com/repos/' + REPO + '/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function (rel) {
+      var mb = function (n) { var m = n / 1048576; return (m < 10 ? m.toFixed(1) : m.toFixed(0)) + ' MB'; };
+      (rel.assets || []).forEach(function (a) {
+        var k = /windows/i.test(a.name) && /\.zip$/i.test(a.name) ? 'win' : /macos/i.test(a.name) && /\.tar\.gz$/i.test(a.name) ? 'mac' : '';
+        if (!k) return;
+        $('#btn-' + k).href = a.browser_download_url;
+        $('#meta-' + k).textContent = rel.tag_name + ' · ' + mb(a.size) + ' · ' + (k === 'win' ? 'Windows 10 / 11' : 'Apple silicon / Intel');
+      });
+    })
+    .catch(function () { /* the buttons keep pointing to the releases page */ });
+})();
+</script>
+</body>
+</html>
