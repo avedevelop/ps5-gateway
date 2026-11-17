@@ -13,6 +13,17 @@ The PS5 now asks the PC for every name. If the gateway is not running, or the fi
 3. Is another program using port 53 (Docker, Windows Internet Connection Sharing, a VPN)? `Get-NetUDPEndpoint -LocalPort 53` shows who.
 4. Quick escape: on the PS5 set DNS back to Automatic.
 
+## The PS5 broadcasts straight to Twitch, not to OBS
+
+The console is using a DNS other than the gateway for the Twitch address. It happens after the gateway was off: the PS5 falls back to the secondary DNS (`1.1.1.1`) and can stay on it even when the gateway is back, or after you changed the primary DNS.
+
+1. Stop the broadcast on the PS5.
+2. **Turn the PS5 fully off and on again** (not rest mode).
+3. Check Settings > Network > View Connection Status: the primary DNS must be the number shown in the app.
+4. If your router hands out IPv6, the console may also get an IPv6 DNS from it. Try turning IPv6 off on the router.
+
+The app shows "The PS5 is not using this DNS" on Home when the console answers pings but never asks the gateway. The report lists the last names the console asked about (`ps5.recent`): if `ingest.global-contribute.live-video.net` never appears there during a broadcast attempt, the console is not asking the gateway.
+
 ## The PS5 says it cannot start the broadcast
 
 - The PS5 needs a linked Twitch account (Settings > Users and Accounts > Link with Other Services).

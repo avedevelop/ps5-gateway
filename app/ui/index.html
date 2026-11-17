@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PS5 Gateway</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="splash"><div class="mark">P</div><div class="hb">PS5 Gateway</div><div class="spin"></div><div class="p">Запуск…</div></div>
+<div id="app">
+
+  <header class="topbar" id="topbar" hidden>
+    <div class="brand"><span class="mark mini">P</span><span>PS5 Gateway</span></div>
+    <nav><button data-go="home">Главная</button><button data-go="guide">Гайд</button><button data-go="settings">Настройки</button></nav>
+  </header>
+
+  <!-- ===== Onboarding ===== -->
+  <section class="screen" id="ob1"><select class="sel sel-lang ob-lang" aria-label="Язык"><option value="ru">Русский</option><option value="en">English</option><option value="uk">Українська</option><option value="de">Deutsch</option><option value="es">Español</option></select><div class="pg ctr"><div class="grow"></div>
+    <div class="mark">P</div><div class="hb">PS5 Gateway</div><div class="p">Картинка с PS5 в OBS или Streamlabs<br>без карты захвата</div>
+    <div class="need"><div class="lbl">Что понадобится</div>
+      <div class="ni"><b>1</b><span>PS5 и этот компьютер в одной сети (Wi-Fi или кабель)</span></div>
+      <div class="ni"><b>2</b><span>OBS или Streamlabs Desktop. Если их нет, подскажем, где скачать</span></div>
+      <div class="ni"><b>3</b><span>Около пяти минут. Ничего не отправляется на Twitch, пока вы сами не начнёте эфир</span></div></div>
+    <div class="grow"></div>
+    <button class="btn" data-go="ob2">Начать</button><div class="dots"><b class="on"></b><b></b><b></b><b></b><b></b></div></div></section>
+
+  <section class="screen" id="ob2"><div class="pg ctr"><div class="grow"></div>
+    <div class="h">Чем стримите?</div><div class="p">Мы нашли, что установлено на этом компьютере</div>
+    <button class="tile row pick" data-prog="obs"><span class="ic">📺</span><span><b>OBS Studio</b><small id="st-obs">проверяем…</small></span></button>
+    <button class="tile row pick" data-prog="streamlabs"><span class="ic">🟦</span><span><b>Streamlabs Desktop</b><small id="st-sl">проверяем…</small></span></button>
+    <button class="tile row pick" data-prog="custom"><span class="ic">🎛️</span><span><b>Другая программа</b><small>укажите название</small></span></button>
+    <div class="grow"></div><button class="btn" id="ob2-next">Продолжить</button><div class="dots"><b></b><b class="on"></b><b></b><b></b><b></b></div></div></section>
+
+  <section class="screen" id="ob3"><div class="pg ctr"><div class="grow"></div>
+    <div class="h">Адрес вашей PS5</div><div class="p" id="ob3-p">Нужен, чтобы шлюз отвечал только ей</div>
+    <input class="field" id="ps5ip" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="192.168.1.50">
+    <button class="btn ghost" data-go="help-ip">Где его найти?</button><div class="grow"></div>
+    <button class="btn" id="ob3-next">Продолжить</button><div class="dots"><b></b><b></b><b class="on"></b><b></b><b></b></div></div></section>
+
+  <section class="screen" id="ob4"><div class="pg ctr"><div class="grow"></div>
+    <div class="h" id="ob4-h">Устанавливаем</div><div class="p" id="ob4-p">Это займёт минуту</div><div class="pipe" id="pipe" data-step="0">
+      <div class="pn" id="pn1"><span class="pi">🎮</span><small>PS5</small></div>
+      <div class="pl" id="pl1"><i></i><i></i><i></i><i></i></div>
+      <div class="pn" id="pn2"><span class="pi pmark">P</span><em class="ring"></em><small>Шлюз</small></div>
+      <div class="pl" id="pl2"><i></i><i></i><i></i><i></i></div>
+      <div class="pn" id="pn3"><span class="pi">🖥️</span><small>Программа</small></div>
+      <div class="burst"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div>
+    </div>
+    <div class="prog"><div id="ob4-bar"></div></div>
+    <div class="li"><span class="chk n" id="c1"></span><span>Компоненты<small>скачаны и проверены</small></span></div>
+    <div class="li os-win"><span class="chk n" id="cf"></span><span>Брандмауэр<small>доступ только для вашей PS5</small></span></div>
+    <div class="li"><span class="chk n" id="c2"></span><span>Запуск шлюза<small>DNS и приём потока</small></span></div>
+    <div class="li"><span class="chk n" id="c3"></span><span>Проверка<small>что всё работает</small></span></div>
+    <div class="grow"></div><button class="btn" id="ob4-retry" hidden>Попробовать снова</button><div class="dots"><b></b><b></b><b></b><b class="on"></b><b></b></div></div></section>
+
+  <section class="screen" id="ob5"><div class="pg ctr"><div class="grow"></div>
+    <div class="h">Теперь настройте PS5</div><div class="p">В настройках сети консоли укажите этот DNS</div>
+    <div class="card" style="width:100%;text-align:left"><div class="lbl">Основной</div><div class="num xl" data-bind="pc">…</div><div class="lbl" style="margin-top:10px">Дополнительный</div><div class="num l2" data-bind="sec">1.1.1.1</div></div>
+    <button class="btn ghost" data-go="help-dns">Показать, где это на PS5</button><div class="grow"></div>
+    <button class="btn" id="ob5-next">Готово</button><div class="dots"><b></b><b></b><b></b><b></b><b class="on"></b></div></div></section>
+
+  <section class="screen" id="ob6"><div class="pg ctr"><div class="grow"></div>
+    <div class="mark round">✓</div><div class="hb" style="font-size:26px">Всё готово</div><div class="p">Запустите трансляцию на PS5.<br>Картинка появится в программе, а здесь вы увидите, что всё работает.</div><div class="grow"></div>
+    <button class="btn" id="ob6-open">Открыть панель</button>
+    <div class="p" style="font-size:11.5px">Понравилось? <button class="lk" data-act="support" style="display:inline">Поддержите автора ♥</button></div></div></section>
+
+  <section class="screen" id="err-app"><div class="pg ctr"><div class="grow"></div>
+    <div class="mark warn">!</div><div class="h" id="err-h">Программа не найдена</div><div class="p" id="err-p">Мы не нашли её на этом компьютере. Установите её или выберите другую.</div>
+    <button class="btn" id="err-dl">Скачать</button><button class="btn sec" data-go="ob2">Выбрать другую</button><div class="grow"></div></div></section>
+
+  <!-- ===== Home ===== -->
+  <section class="screen" id="home"><div class="pg wide">
+    <div class="head"><span class="dot" id="dot"></span><div><div class="h" id="home-title">…</div><div class="p" id="home-sub"></div></div><span class="grow"></span><button class="updpill" id="upd-pill" hidden title="Доступна новая версия"><i></i><b id="upd-ver"></b></button><button class="btn sec head-open" id="open-prog">Открыть OBS</button><button class="sw" id="sw" aria-label="Шлюз"></button></div>
+    <div class="banner" data-show="attn"><b>Адрес компьютера изменился.</b> Введите новый DNS в настройках сети PS5, иначе она не найдёт шлюз и трансляция не пойдёт.</div>
+    <div class="banner" id="ps5-silent" hidden><b>PS5 не использует этот DNS.</b> Если меняли DNS или выключали шлюз, перезагрузите PS5 полностью (не режим покоя), затем проверьте основной DNS на консоли. <button class="linkbtn" data-go="help-dns">Как поменять DNS на PS5</button></div>
+    <div class="homegrid">
+      <div class="a-live card" data-show="live">
+        <div class="lvh">PS5 <span class="ok" id="live-time">● в эфире</span></div>
+        <div class="live6">
+          <div><b id="l-fps">0</b><small>fps</small></div><div><b id="l-mbit">0</b><small>Мбит/с</small></div>
+          <div><b id="l-drop">0</b><small>потери</small></div><div><b id="l-time">00:00</b><small>время</small></div>
+        </div>
+      </div>
+      <div class="a-dns card dns" id="dnscard"><div class="t">DNS для PS5 <span id="dns-state"></span></div>
+        <div class="r"><small id="dns-l1">Основной</small><span class="num" id="dns-p">…</span></div><div class="r"><small>Дополнительный</small><span class="num mid" data-bind="sec">1.1.1.1</span></div></div>
+      <div class="a-ps5 tile ps5t" data-show="wait attn off">
+        <div class="pt"><b>PS5</b><span class="st" id="ps5-s">…</span></div>
+        <div class="r"><small>Адрес</small><span class="num sm" id="ps5-ip">…</span></div>
+        <div class="r"><small>DNS</small><b id="ps5-dns">…</b></div>
+        <span hidden id="ps5-live"></span>
+      </div>
+      <div class="a-addr tile" data-show="wait live off"><b>Адрес источника</b><div class="addr" id="addr">…</div><button class="act" id="copy-addr">Скопировать</button></div>
+      <div class="a-about card about" data-show="wait off live">
+        <div class="ab-top"><span class="ab-av">ave</span>
+          <div class="ab-text"><div class="ab-name">avedevelop</div><div class="ab-role">Автор PS5 Gateway · бесплатно и с открытым кодом</div></div></div>
+        <div class="ab-btns"><button class="btn" data-act="support"><span class="heart">♥</span> Поддержать</button><button class="btn sec" data-act="author">GitHub ↗</button></div>
+      </div>
+      <div class="a-btns btns"><button id="b-check">Проверить</button><button id="b-restart">Перезапустить</button><button data-go="report">Отчёт</button></div>
+      <div class="a-links links" data-show="attn"><button data-go="help-dns">Как поменять DNS на PS5</button></div>
+    </div>
+  </div></section>
+
+  <!-- ===== Guide ===== -->
+  <section class="screen" id="guide"><div class="pg"><div class="h">Гайд</div><div class="p">Коротко и по шагам. Выберите, что нужно.</div>
+    <button class="gc" data-go="help-ip"><span class="ic">🎮</span><span>Найти адрес PS5<small>где его взять на консоли</small></span><span class="ch">›</span></button>
+    <button class="gc" data-go="help-dns"><span class="ic">🌐</span><span>Поменять DNS на PS5<small>4 шага, цифры из приложения</small></span><span class="ch">›</span></button>
+    <button class="gc" data-go="help-obs"><span class="ic">📺</span><span>Настроить OBS<small>сцена и источник</small></span><span class="ch">›</span></button>
+    <button class="gc" data-go="help-sl"><span class="ic">🟦</span><span>Настроить Streamlabs<small>источник Media File</small></span><span class="ch">›</span></button>
+    <button class="gc" id="g-check"><span class="ic">🛟</span><span>Если что-то не работает<small>запустить проверку</small></span><span class="ch">›</span></button>
+    <button class="gc" data-go="ob1"><span class="ic">↺</span><span>Пройти установку заново<small>настройки сохранятся</small></span><span class="ch">›</span></button>
+  </div></section>
+
+  <!-- ===== Settings ===== -->
+  <section class="screen" id="settings"><div class="pg"><div class="sethead"><div class="h">Настройки</div>
+      <div class="seg modeseg" id="modeseg"><button data-mode="basic" class="on">Обычные</button><button data-mode="adv">Расширенные</button></div></div>
+
+    <div class="setgrid" id="set-basic">
+      <div class="card sc"><div class="sct">Программа</div>
+        <div class="scb"><div class="seg segx" data-n="3" id="seg"><button data-prog="obs">OBS</button><button data-prog="streamlabs">Streamlabs</button><button data-prog="custom">Другая</button></div></div>
+        <small class="sch" id="prog-note">В какую программу вы забираете картинку с PS5. От выбора зависят подсказки и кнопка «Открыть» на главной.</small></div>
+      <div class="card sc"><div class="sct">Адрес PS5</div>
+        <div class="scb row"><input class="field fld-s" id="st-ps5" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="192.168.1.50"><button class="btn" id="st-ps5-save">Сохранить</button></div>
+        <small class="sch">Шлюз отвечает только этой консоли. На PS5: Настройки › Сеть › Просмотр состояния подключения. <button class="lnk" data-go="help-ip">Подробнее</button></small></div>
+
+      <div class="card sc wide"><div class="sct">Запуск</div>
+        <div class="scb tri">
+          <div class="trow"><span>Автозапуск при входе<small>шлюз включается вместе с Mac</small></span><button class="sw sm" id="sw-login" aria-label="Запускать при входе"></button></div>
+          <div class="trow"><span>Включать шлюз при открытии приложения<small>если он ещё не запущен</small></span><button class="sw sm" id="sw-gwauto" aria-label="Включать шлюз при открытии"></button></div>
+          <div class="trow"><span>Открывать программу для стрима при включении шлюза<small>ту, что выбрана выше (OBS, Streamlabs или своя)</small></span><button class="sw sm" id="sw-openprog" aria-label="Открывать программу вместе со шлюзом"></button></div>
+        </div></div>
+
+      <div class="card sc"><div class="sct">Вид</div>
+        <div class="scb"><div class="trow"><span>Язык<small>интерфейса приложения</small></span><select class="sel sel-lang" id="sel-lang" aria-label="Язык"><option value="ru">Русский</option><option value="en">English</option><option value="uk">Українська</option><option value="de">Deutsch</option><option value="es">Español</option></select></div>
+          <div class="trow"><span>Скрывать адреса<small>для стримов: размывает IP, наведите, чтобы увидеть</small></span><button class="sw sm" id="sw-priv" aria-label="Скрывать адреса"></button></div></div></div>
+      <div class="card sc"><div class="sct">Уведомления</div>
+        <div class="scb"><div class="trow"><span>Сообщать, когда PS5 начала и закончила трансляцию<small>системное уведомление macOS</small></span><button class="sw sm" id="sw-notify" aria-label="Уведомления о трансляции"></button></div>
+          <div class="trow"><span>Спрашивать перед выключением шлюза<small>защита от случайного нажатия</small></span><button class="sw sm" id="sw-ask" aria-label="Спрашивать перед выключением"></button></div></div></div>
+
+      <div class="card sc wide updcard"><div class="sct">Обновления</div>
+        <div class="updrow">
+          <div class="updinfo"><div class="updv"><span>Версия</span> <b id="ver-num">…</b><span id="ver-foot" hidden></span></div><small class="sch" id="upd-status">Последняя проверка: ещё не было</small></div>
+          <div class="updbtns"><button class="btn sec" id="upd-check">Проверить сейчас</button><button class="btn" id="upd-go" hidden>Обновить</button></div>
+        </div>
+        <div class="trow"><span>Проверять автоматически<small>обращается только к GitHub, ничего о вас не отправляет</small></span><button class="sw sm" id="sw-updauto" aria-label="Проверять обновления автоматически"></button></div>
+      </div>
+
+      <div class="card sc wide"><div class="sct">Справка</div>
+        <div class="how"><div class="hw"><b>1</b><span>PS5 просит адрес трансляции Twitch у DNS, который вы ей указали</span></div><div class="hw"><b>2</b><span>Шлюз отвечает адресом этого компьютера, и картинка приходит сюда</span></div><div class="hw"><b>3</b><span>Шлюз отдаёт её в OBS или Streamlabs, на Twitch ничего не уходит</span></div></div>
+        <div class="helpgrid">
+          <button class="btn sec" data-go="help-ip">Найти адрес PS5</button>
+          <button class="btn sec" data-go="help-dns">Поменять DNS на PS5</button>
+          <button class="btn sec" data-go="help-obs">Настроить OBS</button>
+          <button class="btn sec" data-go="help-sl">Настроить Streamlabs</button>
+          <button class="btn sec" data-go="faq">Частые проблемы</button>
+          <button class="btn sec" data-go="report">Отчёт для помощи</button></div></div>
+    </div>
+
+    <div class="setgrid adv" id="set-adv" hidden>
+      <div class="card sc a-pc"><div class="sct">Адрес этого компьютера</div>
+        <div class="scb row"><input class="field fld-s" id="st-pc" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="определяется автоматически"><button class="btn" id="st-pc-save">Сохранить</button></div>
+        <div class="chipsbox"><div class="lbl">Найденные адреса на этом компьютере</div><div class="chips" id="pc-chips"></div></div>
+        <small class="sch">Нажмите на адрес, чтобы подставить его. Пустое поле: адрес определяется сам. Этот же адрес вводится на PS5 как основной DNS.</small></div>
+      <div class="card sc a-beh"><div class="sct">Питание и обновление</div>
+        <div class="scb"><div class="trow"><span>Не давать Mac засыпать<small>пока идёт трансляция, иначе она оборвётся</small></span><button class="sw sm" id="sw-awake" aria-label="Не засыпать во время трансляции"></button></div>
+          <div class="trow"><span>Обновлять статус<small>реже: меньше нагрузки</small></span><div class="seg segx" data-n="3" id="seg-refresh"><button data-v="1000">1 с</button><button data-v="2000">2 с</button><button data-v="5000">5 с</button></div></div>
+          <div class="trow"><span>Меньше анимаций<small>переключатели и карточки без движения</small></span><button class="sw sm" id="sw-calm" aria-label="Меньше анимаций"></button></div></div></div>
+      <div class="card sc a-dnsx"><div class="dnshead"><div class="sct">DNS для остальных запросов</div>
+          <div class="seg segx" data-n="2" id="seg-dnsmode"><button data-v="preset">Готовые</button><button data-v="own">Свои</button></div></div>
+        <small class="sch" id="dns-note">Через них шлюз отвечает на всё, кроме адреса трансляции PS5. Первый адрес вы вводите на PS5 как дополнительный DNS.</small>
+        <div class="dnslist" id="dnslist">
+          <button class="dopt" data-up=""><b>Стандартный</b><code>1.1.1.1 · 8.8.8.8</code></button>
+          <button class="dopt" data-up="1.1.1.1 1.0.0.1"><b>Cloudflare</b><code>1.1.1.1 · 1.0.0.1</code></button>
+          <button class="dopt" data-up="8.8.8.8 8.8.4.4"><b>Google</b><code>8.8.8.8 · 8.8.4.4</code></button>
+          <button class="dopt" data-up="9.9.9.9 149.112.112.112"><b>Quad9</b><code>9.9.9.9 · 149.112.112.112</code></button>
+        </div>
+        <div class="dnsown" id="dns-own" hidden>
+          <small class="sch">Один или два адреса, например 1.1.1.1 и 8.8.8.8</small>
+          <div class="dnsfields"><input class="field fld-s" id="st-dns1" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Первый адрес"><input class="field fld-s" id="st-dns2" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Второй адрес (можно пусто)"></div>
+          <button class="btn" id="st-dns-save">Сохранить свои адреса</button>
+        </div></div>
+      <div class="card sc a-svcs"><div class="sct">Службы шлюза</div>
+        <div class="svclist" id="svclist">
+          <div class="svr" data-svc="dns"><i class="sd"></i><b>DNS</b><small>порт 53</small><em></em></div>
+          <div class="svr" data-svc="ingest"><i class="sd"></i><b>Приём видео</b><small>порт 1935</small><em></em></div>
+          <div class="svr" data-svc="relay"><i class="sd"></i><b>Передача в программу</b><small>FFmpeg</small><em></em></div>
+        </div></div>
+      <div class="card sc a-cl"><div class="sct">Кэш и журнал</div>
+        <div class="scb"><div class="lbl">DNS-кэш</div><div class="seg segx" data-n="4" id="seg-cache"><button data-v="0">Выкл</button><button data-v="30">30 с</button><button data-v="300">5 мин</button><button data-v="3600">1 час</button></div>
+          <div class="lbl">Подробность журнала</div><div class="seg segx" data-n="4" id="seg-log"><button data-v="error">Ошибки</button><button data-v="warn">Важное</button><button data-v="info">Обычно</button><button data-v="debug">Всё</button></div></div></div>
+      <div class="card sc a-diag"><div class="sct">Диагностика</div>
+        <div class="scb btnrow"><button class="btn sec" id="adv-check">Проверить систему</button><button class="btn sec" id="adv-diagcopy">Скопировать результат</button></div>
+        <pre class="diag" id="diag">Нажмите «Проверить систему»: покажет, что на месте, а что нет.</pre></div>
+      <div class="card sc a-svc"><div class="sct">Журналы и служебное</div>
+        <div class="scb btnrow svcrow">
+          <button class="btn sec" id="adv-logs">Открыть логи</button><button class="btn sec" id="adv-clear">Очистить логи</button><button class="btn sec" id="adv-env">Файл .env</button><button class="btn sec" id="adv-reset">Сбросить расширенные</button><button class="btn sec" data-go="ob1">Установка заново</button><button class="btn del" data-go="uninstall">Удалить…</button></div></div>
+    </div>
+  </div></section>
+
+  <section class="screen" id="faq"><div class="pg"><button class="back" data-back>‹ Назад</button><div class="h">Частые проблемы</div><div class="p">Нажмите на вопрос. Если не помогло, откройте «Проверка» на главной и пришлите отчёт.</div>
+    <div class="faq">
+      <details><summary>Трансляция с PS5 идёт сразу на Twitch, а не в OBS</summary><p>Так бывает, когда PS5 пользуется другим DNS, а не шлюзом, например после того, как шлюз был выключен: консоль переключается на дополнительный DNS и может остаться на нём. Остановите трансляцию, выключите PS5 полностью (не режим покоя) и включите снова. Проверьте, что основной DNS на ней совпадает с карточкой «DNS для PS5». Если у роутера включён IPv6, попробуйте отключить его.</p></details>
+      <details><summary>PS5 пишет, что не может начать трансляцию</summary><p>Привяжите аккаунт Twitch: Настройки › Пользователи и аккаунты › Связь с другими сервисами. Затем на PS5 нажмите «Проверить подключение к интернету». В «Проверка» строка «PS5 обращалась к этому DNS» должна быть зелёной. Если нет, PS5 не использует этот компьютер как DNS: повторите гайд «Поменять DNS на PS5».</p></details>
+      <details><summary>Приложение пишет «Адрес компьютера изменился»</summary><p>Роутер выдал компьютеру новый адрес, и DNS на PS5 указывает в пустоту. Впишите новый основной DNS на PS5 (он показан в карточке «DNS для PS5») и перезапустите шлюз. Чтобы адрес не менялся, в роутере можно закрепить его за компьютером (по желанию).</p></details>
+      <details><summary>В OBS чёрная картинка источника PS5</summary><p>Сначала проверьте, что картинка вообще идёт: в свойствах источника предпросмотр должен показывать игру. Если игра видна, а на сцене чёрно, выберите источник и нажмите Cmd+R, затем Cmd+F (подогнать по экрану). Если чёрно и в свойствах: выключите «Аппаратное декодирование» в свойствах источника, проверьте адрес rtmp://…:1935/ps5/game и что PS5 действительно вещает. Очень тёмные сцены игры тоже выглядят чёрными.</p></details>
+      <details><summary>OBS пишет «Resolving timed out» при входе в Twitch</summary><p>Компьютер медленно разрешает имена. Частая причина: VPN или виртуальный сетевой адаптер, который система пробует первым. Отключите такое ПО или в настройках OBS выберите вход по ключу трансляции.</p></details>
+      <details><summary>Картинка на Twitch мыльная или в квадратах</summary><p>Качество упирается в три вещи по порядку: сама трансляция PS5 (проверьте её качество на консоли), настройки кодировщика в OBS (аппаратный H.264, CBR 6000–8000 Кбит/с, ключевой кадр 2 с, 1920×1080, 60 к/с) и ваше соединение (компьютер лучше подключить кабелем; «Вид › Статистика» в OBS покажет пропущенные кадры).</p></details>
+      <details><summary>Шлюз не включается</summary><p>Нажмите «Проверить» на главной: приложение покажет, чего не хватает. Частые причины: не задан адрес PS5, не определился адрес компьютера или порты 53 и 1935 заняты другой программой. Подробности в логах: Настройки › Расширенные › Открыть логи.</p></details>
+      <details><summary>Брандмауэр macOS блокирует шлюз</summary><p>Если брандмауэр включён, он может не пускать PS5. Разрешите входящие подключения для CoreDNS и MediaMTX один раз; «Проверка» подскажет точную команду.</p></details>
+      <details><summary>Хочу начать с чистого листа</summary><p>Настройки › Расширенные › «Установка заново» (настройки сохранятся) или «Сбросить расширенные», чтобы вернуть значения по умолчанию.</p></details>
+    </div></div></section>
+
+  <!-- ===== Check / report / uninstall / help ===== -->
+  <section class="screen" id="check"><div class="pg"><button class="back" data-back>‹ Назад</button><div class="h">Проверка</div><div class="p" id="chk-sub">Проверяем…</div>
+    <div class="grp" id="chk-list"></div><div class="grow"></div>
+    <button class="btn" id="chk-again">Повторить проверку</button><button class="btn sec" data-go="report">Сделать отчёт для помощи</button></div></section>
+
+  <section class="screen" id="report"><div class="pg"><button class="back" data-back>‹ Назад</button><div class="h">Отчёт для помощи</div>
+    <div class="p">Если что-то не работает, отправьте этот отчёт ИИ-ассистенту (ChatGPT, Claude и т. п.) или автору. Приложение само ничего не отправляет.</div>
+    <div class="card repsum"><div class="repbusy"><i class="spin2"></i><div><b>Собираем отчёт…</b><small>Проверяем сеть, порты, службы и логи. Обычно это занимает несколько секунд.</small></div><span class="bar"></span></div><div class="repnum"><b id="rep-count">0</b><span>строк в отчёте</span></div><div class="repsecs" id="rep-secs">…</div>
+      <button class="btn sec" id="rep-open">Читать полностью</button></div>
+    <div class="grp"><div>Скрыть адреса сети <button class="sw on" id="rep-mask" aria-label="Скрыть адреса"></button></div></div>
+    <div class="p">Ключ трансляции и файл настроек в отчёт не попадают. Отчёт большой: в нём вся диагностика, которая может пригодиться.</div>
+    <div class="grow"></div>
+    <button class="btn" id="rep-ai">Скопировать для ИИ-ассистента</button>
+    <button class="btn sec" id="rep-save">Сохранить в файл</button>
+    <div class="dlgbtns"><button class="btn sec" id="rep-copy">Скопировать отчёт</button><button class="btn sec" id="rep-author">Написать автору</button></div>
+    <pre id="rep-text" hidden></pre></div></section>
+
+  <section class="screen" id="uninstall"><div class="pg"><button class="back" data-back>‹ Назад</button><div class="h">Удалить PS5 Gateway</div><div class="p">Вот что будет убрано:</div>
+    <div class="grp"><div><span><span class="ok">✓</span>&nbsp; Запуск при входе</span></div><div><span><span class="ok">✓</span>&nbsp; Скачанные компоненты</span></div><div><span><span class="ok">✓</span>&nbsp; Настройки (.env)</span></div></div>
+    <div class="card"><div class="p"><b style="color:var(--ink)">Не забудьте:</b> на PS5 верните DNS на «Автоматически», чтобы она перестала обращаться к этому компьютеру.</div></div><div class="grow"></div>
+    <button class="btn del" id="un-do">Удалить</button><button class="btn sec" data-back>Отмена</button></div></section>
+
+  <section class="screen" id="help-ip"><div class="pg"><button class="back" data-back>‹ Назад</button><div class="h">Где найти адрес PS5</div><img class="shotimg" id="ps5shot" alt="PS5" src="img/ps5-net-ru.jpg">
+    <div class="stp"><span class="nn">1</span><span>Settings › Network<small>«Настройки › Сеть»</small></span></div>
+    <div class="stp"><span class="nn">2</span><span>Connection Status › View Connection Status</span></div>
+    <div class="stp"><span class="nn">3</span><span>Найдите «IPv4 Address», например 192.168.1.50</span></div>
+    <div class="grow"></div><button class="btn" data-back>Понятно</button></div></section>
+
+  <section class="screen" id="help-dns"><div class="pg"><button class="back" data-back>‹ Назад</button><div class="h">Как поменять DNS на PS5</div>
+    <div class="stp"><span class="nn">1</span><span>Settings › Network › Settings › Set Up Internet Connection</span></div>
+    <div class="stp"><span class="nn">2</span><span>Выберите свою сеть › Advanced Settings › DNS Settings › Manual</span></div>
+    <div class="stp"><span class="nn">3</span><span>Введите<div class="num" style="font-size:24px;margin-top:4px" data-bind="pc">…</div><small>основной</small><div class="num mid" style="font-size:18px" data-bind="sec">1.1.1.1</div><small>дополнительный</small></span></div>
+    <div class="stp"><span class="nn">4</span><span>Done › Test Internet Connection</span></div>
+    <div class="stp"><span class="nn">5</span><span>Выключите PS5 полностью и включите снова (не режим покоя)<small>иначе она может остаться на старом DNS</small></span></div><div class="grow"></div><button class="btn" data-back>Готово</button></div></section>
+
+  <section class="screen" id="help-obs"><div class="pg"><button class="back" data-back>‹ Назад</button><div class="h">Настроить OBS</div>
+    <div class="stp"><span class="nn">1</span><span>Запустите OBS и выберите коллекцию сцен PS5<small>она создаётся установщиком (если нет: <span class="sel-text">node scripts/make-obs-scenes.mjs</span>)</small></span></div>
+    <div class="stp"><span class="nn">2</span><span>Settings › Stream: Twitch и ваш ключ<small>ключ вводите только в OBS</small></span></div>
+    <div class="stp"><span class="nn">3</span><span>Settings › Video: холст и выход 1920x1080<small>на MacBook по умолчанию другой формат</small></span></div>
+    <div class="stp"><span class="nn">4</span><span>Когда картинка с PS5 пришла, нажмите «Начать трансляцию»<small>до этого в Twitch ничего не уходит</small></span></div>
+    <div class="grow"></div><button class="btn" data-back>Понятно</button></div></section>
+
+  <section class="screen" id="help-sl"><div class="pg"><button class="back" data-back>‹ Назад</button><div class="h">Настроить Streamlabs</div>
+    <div class="stp"><span class="nn">1</span><span>Создайте сцену, в Sources нажмите +, найдите «Media File»<small>по запросу «media source» ничего не найдётся</small></span></div>
+    <div class="stp"><span class="nn">2</span><span>Снимите «Local File» и в «Input» вставьте адрес источника<small>он есть на главном экране, кнопка «Скопировать»</small></span></div>
+    <div class="stp"><span class="nn">3</span><span>Reconnect Delay поставьте 2<small>и Settings › Video: 1920x1080</small></span></div>
+    <div class="stp"><span class="nn">4</span><span>Правый клик по источнику › Transform › Fit to Screen</span></div>
+    <div class="grow"></div><button class="btn" data-back>Понятно</button></div></section>
+
+  <!-- ===== Tab bar ===== -->
+  <nav class="tabs" id="tabs" hidden>
+    <button data-go="home">Главная</button><button data-go="guide">Гайд</button><button data-go="settings">Настройки</button>
+  </nav>
+
+  <!-- ===== Switch-off dialog ===== -->
+  <div class="dim" id="dlg-off" hidden><div class="dlg"><div class="h">Выключить шлюз?</div>
+    <div class="p">Пока шлюз выключен, трансляция PS5 в OBS не пойдёт. Интернет у PS5 останется: она перейдёт на дополнительный DNS (<span data-bind="sec">1.1.1.1</span>).</div>
+    <button class="btn del" id="off-yes">Выключить</button><button class="btn sec" id="off-no">Отмена</button><button class="btn ghost" id="off-help">Как вернуть DNS на PS5</button></div></div>
+
+  <div class="dim" id="dlg-prog" hidden><div class="dlg dlg-wide"><div class="h">Другая программа</div>
+    <div class="p">Укажите, в какую программу вы забираете картинку с PS5. Подойдёт любая, которая умеет принимать видео по адресу.</div>
+    <div class="lbl">Название программы</div>
+    <input class="field fld-s" id="prog-name" autocomplete="off" spellcheck="false" placeholder="Например: vMix">
+    <small class="sch" id="prog-msg">Пишите так, как программа называется в папке «Программы»: например Twitch Studio, vMix или Wirecast.</small>
+    <div class="lbl">Адрес источника для неё</div>
+    <div class="scb row"><div class="addr urlbox" id="prog-url">…</div><button class="btn sec" id="prog-copy">Скопировать</button></div>
+    <small class="sch">В программе добавьте источник «видео по адресу» (медиа-источник, сетевой поток) и вставьте этот адрес.</small>
+    <div class="dlgbtns"><button class="btn" id="prog-save">Сохранить</button><button class="btn sec" id="prog-cancel">Отмена</button></div></div></div>
+
+  <div class="dim" id="dlg-report" hidden><div class="dlg dlg-report">
+    <div class="dlgtop"><div class="h">Отчёт для помощи</div><div class="seg segx" data-n="2" id="seg-repview"><button data-v="ai">Для ИИ-ассистента</button><button data-v="plain">Только отчёт</button></div></div>
+    <small class="sch" id="rep-viewnote">С готовым промтом на языке интерфейса: вставьте всё в чат с ассистентом.</small>
+    <pre class="repfull" id="rep-full"></pre>
+    <div class="dlgbtns"><button class="btn" id="rep-modal-copy">Скопировать</button><button class="btn sec" id="rep-close">Закрыть</button></div></div></div>
+
+  <div class="dim" id="dlg-upd" hidden><div class="dlg dlg-wide">
+    <div class="h" id="upd-title">Доступна новая версия</div>
+    <pre class="repfull updnotes" id="upd-notes"></pre>
+    <div class="updprog" id="upd-prog" hidden><div class="prog"><div id="upd-bar"></div></div><div class="p" id="upd-step">…</div></div>
+    <div class="p updmsg" id="upd-msg" hidden></div>
+    <div class="dlgbtns"><button class="btn" id="upd-now">Обновить сейчас</button><button class="btn sec" id="upd-later">Позже</button></div></div></div>
+
+  <div class="toast" id="toast" hidden></div>
+</div>
+<script src="strings/ru.js"></script>
+<script src="strings/en.js"></script>
+<script src="strings/uk.js"></script>
+<script src="strings/de.js"></script>
+<script src="strings/es.js"></script>
+<script src="os.js"></script>
+<script src="i18n-doctor.js"></script>
+<script src="app.js"></script>
+<script src="i18n.js"></script>
+</body>
+</html>

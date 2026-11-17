@@ -11,7 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { join, dirname, basename, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline/promises';
-import { Readable } from 'node:stream';
+import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { lanCandidates, detectLanIp } from '../apps/common/lanip.mjs';
 import { readEnvFiles } from '../apps/common/envfile.mjs';
@@ -40,23 +40,39 @@ const TOOLS = [
 // Windows' own bsdtar (reads zip and tgz), not a GNU tar from Git Bash; macOS ships bsdtar as /usr/bin/tar
 const TAR = WIN ? join(process.env.SystemRoot ?? 'C:/Windows', 'System32', 'tar.exe') : '/usr/bin/tar';
 
-async function download(url, file) {
+// Progress for the desktop app: lines "@@progress {json}" on stdout (the app strips them; on a terminal they are harmless).
+// p is the overall share 0..1; each tool counts by its rough download size.
+const WEIGHT = { MediaMTX: 15, CoreDNS: 20, FFmpeg: 65 };
+let doneW = 0;
+const weightOf = (t) => WEIGHT[t.name] ?? 10;
+const totalW = () => TOOLS.reduce((a, t) => a + weightOf(t), 0);
+function progress(t, phase, frac, received = 0, total = 0) {
+  const p = Math.min(1, (doneW + weightOf(t) * frac) / totalW());
+  console.log('@@progress ' + JSON.stringify({ name: t.name, index: TOOLS.indexOf(t) + 1, of: TOOLS.length, phase, p: Math.round(p * 1000) / 1000, received, total }));
+}
+async function download(url, file, onBytes = () => {}) {
   const r = await fetch(url, { redirect: 'follow' });
   if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
-  await pipeline(Readable.fromWeb(r.body), createWriteStream(file));
+  const total = Number(r.headers.get('content-length')) || 0;
+  let got = 0, last = 0;
+  const counter = new Transform({ transform(chunk, _enc, cb) { got += chunk.length; const now = Date.now(); if (now - last > 200) { last = now; onBytes(got, total); } cb(null, chunk); } });
+  await pipeline(Readable.fromWeb(r.body), counter, createWriteStream(file));
+  onBytes(got, total);
 }
 const sha256 = (file) => createHash('sha256').update(readFileSync(file)).digest('hex');
 function walk(dir) { return readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)])); }
 
 async function install(t) {
   const dest = join(ROOT, t.dir);
-  if (existsSync(join(dest, t.exe))) { ok(`${t.name} already installed`); return; }
+  if (existsSync(join(dest, t.exe))) { ok(`${t.name} already installed`); doneW += weightOf(t); progress(t, 'done', 0); return; }
   if (CHECK || NODL) { bad(`${t.name} is missing (${join(t.dir, t.exe)})`); return; }
   const tmp = join(ROOT, 'dl', t.name.toLowerCase());
   rmSync(tmp, { recursive: true, force: true }); mkdirSync(tmp, { recursive: true });
   const file = join(tmp, `pkg.${t.ext}`);
   console.log(`  downloading ${t.name} ...`);
-  await download(t.url, file);
+  progress(t, 'download', 0);
+  await download(t.url, file, (got, total) => progress(t, 'download', 0.85 * (total ? got / total : 0), got, total));
+  progress(t, 'verify', 0.88);
   const want = (await (await fetch(t.sums)).text()).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const base = t.url.split('/').pop();
   const line = want.find((l) => l.includes(base)) ?? want[0];
@@ -64,6 +80,7 @@ async function install(t) {
   if (!expected) throw new Error(`no checksum found for ${t.name}`);
   const got = sha256(file);
   if (got !== expected) { rmSync(tmp, { recursive: true, force: true }); throw new Error(`${t.name}: checksum mismatch (got ${got.slice(0, 12)}..., expected ${expected.slice(0, 12)}...). Download aborted.`); }
+  progress(t, 'unpack', 0.94);
   mkdirSync(dest, { recursive: true });
   const ex = join(tmp, 'x'); mkdirSync(ex);
   execFileSync(TAR, ['-xf', file, '-C', ex], { stdio: 'ignore' });
@@ -71,6 +88,7 @@ async function install(t) {
   else for (const f of walk(ex)) copyFileSync(f, join(dest, basename(f)));
   if (!WIN && existsSync(join(dest, t.exe))) chmodSync(join(dest, t.exe), 0o755);
   rmSync(tmp, { recursive: true, force: true });
+  doneW += weightOf(t); progress(t, 'done', 0);
   if (existsSync(join(dest, t.exe))) ok(`${t.name} installed (checksum verified)`); else bad(`${t.name}: ${t.exe} not found after extraction`);
 }
 

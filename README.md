@@ -6,13 +6,13 @@
 
 Redirect the PS5's built-in Twitch broadcast to your Windows PC or Mac, open it in OBS as a normal source, and stream from there with your own scenes, overlays and alerts.
 
-![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)
+![License](https://img.shields.io/badge/license-MIT-blue)
 [![CI](https://github.com/avedevelop/ps5-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/avedevelop/ps5-gateway/actions/workflows/ci.yml)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-0078d4)
 ![Node](https://img.shields.io/badge/node-%E2%89%A5%2022.18-5fa04e)
 ![Dependencies](https://img.shields.io/badge/npm%20dependencies-0-brightgreen)
 
-[Quick start](#quick-start) · [Install guide](docs/INSTALL.md) · [Install with AI](docs/AI-INSTALL.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Русский](README.ru.md)
+[Quick start](#quick-start) · [Windows guide](docs/WINDOWS.md) · [macOS guide](docs/MACOS.md) · [Desktop app](#desktop-app) · [Install guide](docs/INSTALL.md) · [Install with AI](docs/AI-INSTALL.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Русский](README.ru.md)
 
 <br>
 
@@ -40,13 +40,22 @@ When the PS5 starts a broadcast it looks up a Twitch ingest address. PS5 Gateway
 
 ## Quick start
 
+**The easiest way is the desktop app.** Download the archive for your system, unpack it, open the app and follow its setup. Every step has a picture in the guide for your system:
+
+| | Guide | Download |
+|---|---|---|
+| <img src="docs/images/win-en-home-live.png" width="360" alt="Windows"><br>**Windows 10 / 11** | **[Windows guide](docs/WINDOWS.md)** | `ps5-gateway-windows-<version>.zip` |
+| <img src="docs/images/mac-en-home-live.png" width="360" alt="macOS"><br>**macOS** (Apple silicon or Intel) | **[macOS guide](docs/MACOS.md)** | `ps5-gateway-macos-<version>.tar.gz` |
+
+Both archives are on the [latest release](https://github.com/avedevelop/ps5-gateway/releases/latest) page. Prefer a script or the command line? Read on.
+
 ### One-click installer
 
 Download the archive for your system from the [latest release](https://github.com/avedevelop/ps5-gateway/releases/latest), unpack it and run the installer. It checks Node.js, FFmpeg and OBS, downloads the helper programs, creates the settings, starts the gateway, runs `doctor` and creates the OBS scene. It asks for the PS5's address and for permission before every step that changes your system.
 
 | | Download | Run |
 |---|---|---|
-| **Windows 10 / 11** | `ps5-gateway-windows-<version>.zip` | double-click `installer\windows\Install-PS5-Gateway.cmd` |
+| **Windows 10 / 11** | `ps5-gateway-windows-<version>.zip` | double-click `PS5 Gateway.exe` (the app), or `installer\windows\Install-PS5-Gateway.cmd` (the script installer) |
 | **macOS** (Apple silicon or Intel) | `ps5-gateway-macos-<version>.tar.gz` | double-click `installer/macos/Install PS5 Gateway.command` (first time: right-click > Open) |
 
 Prefer to see every step yourself? Use the commands below.
@@ -89,7 +98,25 @@ Then:
 
 Full walkthrough with every menu path: **[docs/INSTALL.md](docs/INSTALL.md)**. Prefer to have an AI do the talking? Copy a prompt from **[docs/AI-INSTALL.md](docs/AI-INSTALL.md)**.
 
-## Dashboard
+## Desktop app
+
+The release archives contain a small app on top of the gateway: **PS5 Gateway.exe** on Windows and **PS5 Gateway.app** on macOS. It has a guided setup with real download progress, a dashboard with the PS5's status, settings (including advanced ones), a built-in help with common problems, a diagnostic report you can hand to an AI assistant (or save to a file), and updates from GitHub releases. It speaks English, Russian, Ukrainian, German and Spanish.
+
+<div align="center">
+<img src="docs/images/win-en-home-live.png" alt="PS5 Gateway app: the PS5 is broadcasting" width="760">
+</div>
+
+- **Step by step with pictures:** [Windows guide](docs/WINDOWS.md) · [macOS guide](docs/MACOS.md).
+- **Keep it next to `scripts/`:** the app uses the project folder it sits in. Do not move it out of that folder.
+- **Stays in the background.** Closing the window only hides it; the app lives in the notification area (Windows) or the menu bar (macOS), and the gateway keeps running. *Quit* in that menu closes the app. Switching the gateway off is a separate, confirmed step.
+- **Windows asks for permission once** during setup (the firewall step), so that only your PS5 can reach the gateway.
+- **Not signed yet.** Windows SmartScreen shows "More info > Run anyway"; on macOS use right-click > Open the first time. The guides show how.
+- **Updates:** Settings > Updates checks the latest release (it only contacts GitHub, nothing about you is sent) and replaces the files in place. Your settings, downloads and logs are kept.
+- **Build it yourself:** `scripts\build-app.ps1` on Windows or `sh scripts/build-app.sh` on a Mac, with [Rust](https://rustup.rs) installed. For development run `sh app/dev.sh` (macOS). The pictures in the docs are made by `node tools/screenshots.mjs`.
+
+The older local web dashboard stays available at `http://127.0.0.1:8787`.
+
+## Web dashboard
 
 A small local dashboard at `http://127.0.0.1:8787` shows whether the PS5 is broadcasting, relay health, and restart buttons for the services. It speaks English, Russian, Ukrainian, German and Spanish.
 
@@ -104,11 +131,11 @@ A small local dashboard at `http://127.0.0.1:8787` shows whether the PS5 is broa
 - **One-click installers** for Windows and macOS, tested by CI on both systems on every change: the CI installs the gateway on fresh Windows and macOS machines, sends a test stream and checks that it arrives at the address OBS reads.
 - **Setup** with pinned, checksum-verified downloads and automatic LAN address detection.
 - **`doctor`** that checks files, addresses, name-resolution speed, the DNS redirect, the RTMP port and the PS5's activity, and prints a fix for every problem it finds.
-- **Dashboard** with live relay stats and service restarts.
+- **Desktop app** (Windows and macOS) with guided setup, settings, help and updates. **Web dashboard** with live relay stats and service restarts.
 - **OBS scene generator** that writes a `PS5` collection with one scene, the PS5 source already fitted to the canvas and set to reconnect by itself.
 - **PS5-only access.** On Windows a firewall script opens DNS and RTMP for the PS5 only; on macOS the gateway itself answers only the PS5 and your Mac.
 - **Optional autostart** at login (Windows scheduled task, macOS LaunchAgent).
-- **Stays awake on macOS.** The Mac is kept from idle sleep while the PS5 broadcasts.
+- **Stays awake while the PS5 broadcasts** (Windows and macOS), so the computer does not sleep in the middle of a stream.
 - No npm dependencies. The whole thing runs on Node's built-ins.
 
 ## Requirements
@@ -124,7 +151,7 @@ A small local dashboard at `http://127.0.0.1:8787` shows whether the PS5 is broa
 - **On macOS use OBS 33 or newer.** OBS 32.2.2 crashes at startup on macOS 27, see [Troubleshooting](docs/TROUBLESHOOTING.md#macos).
 - **A MacBook sleeps when the lid is closed**, and the gateway stops with it. Keep the lid open (or use an external display and power) while you stream.
 - **Quality** is bounded by the stream the PS5 produces plus OBS's own encode. [Troubleshooting](docs/TROUBLESHOOTING.md) lists the OBS settings that help.
-- **DNS is the PS5's lifeline while this runs.** If the gateway is stopped, the PS5 has no internet until you set its DNS back to Automatic. The install guide explains how.
+- **DNS is how the PS5 finds the gateway.** The guides set the secondary DNS to `1.1.1.1`, so a console normally keeps its internet while the gateway is off. A console that fell back to the secondary DNS can **stay on it** after the gateway returns, and then its broadcast goes straight to Twitch. **Restart the PS5 completely (not rest mode) after changing its DNS or after switching the gateway off.** The app warns you when the console never asks the gateway. To stop using the gateway, set the PS5's DNS back to Automatic.
 - This is a hobby project, offered as is. Read [SECURITY.md](SECURITY.md) before exposing anything beyond your home network.
 
 ## Is this allowed?
@@ -137,12 +164,14 @@ This project is not affiliated with, endorsed by, or connected to Sony Interacti
 
 | | |
 |---|---|
-| [Install guide](docs/INSTALL.md) | Step by step, including the PS5 menus |
+| [Windows guide](docs/WINDOWS.md) · [macOS guide](docs/MACOS.md) | The desktop app step by step, with pictures (Russian: [Windows](docs/WINDOWS.ru.md), [macOS](docs/MACOS.ru.md)) |
+| [Install guide](docs/INSTALL.md) | Step by step with scripts, including the PS5 menus |
 | [Install with AI](docs/AI-INSTALL.md) | Ready prompts for an AI assistant or coding agent |
 | [Architecture](docs/ARCHITECTURE.md) | How it works, ports, files |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Black screen, no internet on the PS5, slow DNS, quality |
+| [Streamlabs Desktop](docs/STREAMLABS.md) | Using Streamlabs instead of OBS (guide in [Russian](docs/STREAMLABS.ru.md)) |
 | [Contributing](CONTRIBUTING.md) | Development and tests |
 
 ## License
 
-[PolyForm Noncommercial 1.0.0](LICENSE). Free for personal and other non-commercial use, not for commercial use. This is a source-available license, not an OSI "open source" one. Software that setup downloads keeps its own license, listed in [NOTICE.md](NOTICE.md).
+[MIT](LICENSE): free to use, copy, modify and distribute, including commercially. Versions 1.0.0 and 1.1.0 were released under PolyForm Noncommercial 1.0.0 and stay under that license for the copies already published; later versions are MIT. Software that setup downloads keeps its own license, listed in [NOTICE.md](NOTICE.md).

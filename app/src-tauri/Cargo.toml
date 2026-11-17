@@ -1,0 +1,19 @@
+[package]
+name = "ps5-gateway-app"
+version = "1.2.0"
+edition = "2021"
+description = "PS5 Gateway desktop app"
+license = "MIT"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+codegen-units = 1

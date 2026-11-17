@@ -8,7 +8,7 @@ import { ROOT, loadEnv } from './env.ts';
 import { mask, addSecret } from './mask.ts';
 import { Service } from './service.ts';
 import { detectLanIp } from '../../common/lanip.mjs';
-import { MAC, toolPath, findFfmpeg, isRunning, pingArgs, restrictFile, renderConfig, stopCmd } from '../../common/platform.mjs';
+import { MAC, toolPath, findFfmpeg, isRunning, pingArgs, restrictFile, renderConfig, parseUpstream, parseCacheTtl, parseLogLevel, stopCmd } from '../../common/platform.mjs';
 
 // PS5 Gateway orchestrator: runs the DNS redirect (CoreDNS) and the RTMP ingest (MediaMTX), watches them,
 // and relays the PS5's stream to a stable local address for OBS: rtmp://<PC>:1935/ps5/game
@@ -23,7 +23,7 @@ if (!PS5_IP) console.error('PS5_IP is not set in .env: the gateway cannot tell w
 function renderConfigs(): void {
   for (const f of ['Corefile', 'mediamtx.yml']) {
     const tpl = readFileSync(resolve(ROOT, 'config', `${f}.tpl`), 'utf8');
-    writeFileSync(resolve(ROOT, 'config', f), renderConfig(f, tpl, { pcIp: PC_IP, ps5Ip: PS5_IP }));
+    writeFileSync(resolve(ROOT, 'config', f), renderConfig(f, tpl, { pcIp: PC_IP, ps5Ip: PS5_IP, upstream: parseUpstream(env.UPSTREAM_DNS), cacheTtl: parseCacheTtl(env.DNS_CACHE_TTL), logLevel: parseLogLevel(env.MTX_LOG_LEVEL) }));
   }
 }
 renderConfigs();
@@ -49,6 +49,7 @@ const st = {
   publishSince: 0,
   ps5LastDns: 0,
   ps5LastHost: '',
+  ps5Recent: [] as { t: number; host: string; type: string }[],
   spoofHits: 0,
   spoofLast: 0,
   ff: { fps: 0, bitrateKbps: 0, speed: 0, drop: 0, dup: 0, frames: 0, at: 0 },
@@ -74,6 +75,12 @@ const dns = new Service({
     if (m[1] !== PS5_IP) return false; // other devices' lookups are not logged
     st.ps5LastDns = Date.now();
     st.ps5LastHost = m[2]!;
+    // the last names the PS5 asked about (shown in the report: it tells what the console does when a broadcast does not reach the gateway)
+    const qtype = /"(\w+) IN /.exec(l)?.[1] ?? '';
+    const seen = st.ps5Recent.findIndex((r) => r.host === m[2]);
+    if (seen >= 0) st.ps5Recent.splice(seen, 1);
+    st.ps5Recent.unshift({ t: Date.now(), host: m[2]!, type: qtype });
+    st.ps5Recent.length = Math.min(st.ps5Recent.length, 25);
     const spoofed = /contribute\.live-video\.net\.$/.test(m[2]!);
     if (spoofed) {
       st.spoofHits++;
@@ -83,12 +90,20 @@ const dns = new Service({
   },
 });
 
-// macOS: keep the computer from idle-sleeping while the PS5 broadcasts (caffeinate ends with this process: -w)
+// Keep the computer from idle-sleeping while the PS5 broadcasts.
+// macOS: caffeinate ends with this process (-w). Windows: a hidden PowerShell asks for "system required" (SetThreadExecutionState)
+// and holds it until this process ends; killing that PowerShell releases it.
+const WIN_AWAKE = "Add-Type -Namespace W -Name K -MemberDefinition '[DllImport(\"kernel32.dll\")] public static extern uint SetThreadExecutionState(uint f);'; [W.K]::SetThreadExecutionState(0x80000001) | Out-Null; Wait-Process -Id " ;
 let awake: ChildProcess | null = null;
 function keepAwake(on: boolean): void {
-  if (!MAC || DRY) return;
+  if ((!MAC && process.platform !== 'win32') || DRY || env.KEEP_AWAKE === '0') return; // KEEP_AWAKE=0 in .env turns this off
   if (on && !awake) {
-    try { awake = spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore' }); awake.on('error', () => {}); awake.on('exit', () => { awake = null; }); } catch {}
+    try {
+      awake = MAC
+        ? spawn('caffeinate', ['-i', '-w', String(process.pid)], { stdio: 'ignore' })
+        : spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', WIN_AWAKE + process.pid], { stdio: 'ignore', windowsHide: true });
+      awake.on('error', () => {}); awake.on('exit', () => { awake = null; });
+    } catch {}
   } else if (!on && awake) { awake.kill(); awake = null; }
 }
 
@@ -208,7 +223,7 @@ function snapshot() {
     publishing: st.publishing,
     publishSinceS: st.publishing ? Math.floor((now - st.publishSince) / 1000) : 0,
     ff: st.ff,
-    ps5: { ip: PS5_IP, reachable: st.net.ps5Reachable, lastDns: st.ps5LastDns, lastHost: st.ps5LastHost, spoofHits: st.spoofHits, spoofLast: st.spoofLast },
+    ps5: { ip: PS5_IP, reachable: st.net.ps5Reachable, lastDns: st.ps5LastDns, lastHost: st.ps5LastHost, recent: st.ps5Recent, spoofHits: st.spoofHits, spoofLast: st.spoofLast },
     net: { pcIp: PC_IP, ipOk: st.net.ipOk, ips: st.net.ips },
     services: [dns, ingest, relay].map(svcInfo),
     events: st.events,

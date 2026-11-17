@@ -67,7 +67,7 @@ export function pingArgs(ip, ms, platform = process.platform) {
 /** Makes a file readable and writable by the current user only. */
 export function restrictFile(file) {
   try {
-    if (WIN) execFileSync('icacls', [file, '/inheritance:r', '/grant:r', `${process.env.USERNAME}:(R,W)`], { stdio: 'ignore' });
+    if (WIN) execFileSync('icacls', [file, '/inheritance:r', '/grant:r', `${process.env.USERNAME}:(R,W,D)`], { stdio: 'ignore' });
     else chmodSync(file, 0o600);
   } catch {}
 }
@@ -92,8 +92,31 @@ export const stopCmd = () => (WIN ? 'powershell -ExecutionPolicy Bypass -File sc
  * to lean on. So CoreDNS listens on all interfaces and answers only the PS5 and this computer (acl plugin), and
  * MediaMTX accepts RTMP connections only from those same addresses.
  */
-export function renderConfig(name, tpl, { pcIp, ps5Ip = '', win = WIN }) {
+export const DEFAULT_UPSTREAM = '1.1.1.1 8.8.8.8';
+
+/** UPSTREAM_DNS from .env: one to four IPv4 resolvers separated by spaces or commas. Anything else falls back to the default. */
+export function parseUpstream(value) {
+  const list = String(value ?? '').split(/[\s,]+/).filter(Boolean);
+  const ok = list.length >= 1 && list.length <= 4 && list.every((a) => /^(\d{1,3}\.){3}\d{1,3}$/.test(a) && a.split('.').every((n) => Number(n) <= 255));
+  return ok ? list.join(' ') : DEFAULT_UPSTREAM;
+}
+
+/** DNS_CACHE_TTL from .env: seconds, 0 to 3600. Anything else falls back to 30. */
+export function parseCacheTtl(value) {
+  const t = String(value ?? '').trim();
+  return /^\d{1,4}$/.test(t) && Number(t) <= 3600 ? t : '30';
+}
+/** MTX_LOG_LEVEL from .env: error, warn, info or debug. Anything else falls back to debug (the current behaviour). */
+export function parseLogLevel(value) {
+  const t = String(value ?? '').trim().toLowerCase();
+  return ['error', 'warn', 'info', 'debug'].includes(t) ? t : 'debug';
+}
+
+export function renderConfig(name, tpl, { pcIp, ps5Ip = '', win = WIN, upstream = DEFAULT_UPSTREAM, cacheTtl = '30', logLevel = 'debug' }) {
   let out = tpl;
+  if (name === 'Corefile') out = out.replace(/^([ \t]*cache) \d+[ \t]*$/m, `$1 ${parseCacheTtl(cacheTtl)}`);
+  if (name === 'mediamtx.yml') out = out.replace(/^logLevel: .*$/m, `logLevel: ${parseLogLevel(logLevel)}`);
+  if (name === 'Corefile') out = out.replace(/^([ \t]*forward \.) .*$/m, `$1 ${parseUpstream(upstream)}`);
   if (!win) {
     const allowed = [...new Set([ps5Ip, pcIp, '127.0.0.1'].filter(Boolean))];
     if (name === 'Corefile') {

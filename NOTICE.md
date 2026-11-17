@@ -1,6 +1,6 @@
 # Third-party software and services
 
-PS5 Gateway itself is licensed under the PolyForm Noncommercial License 1.0.0 ([LICENSE](LICENSE)); commercial use is not permitted. It does **not** include or redistribute any of the software below. `scripts\setup.mjs` downloads the first three from their official sources onto your machine, where they keep their own licenses.
+PS5 Gateway itself is licensed under the MIT License ([LICENSE](LICENSE)). Versions 1.0.0 and 1.1.0 were released under the PolyForm Noncommercial License 1.0.0 and remain under it for the copies already published. It does **not** include or redistribute any of the software below. `scripts\setup.mjs` downloads the first three from their official sources onto your machine, where they keep their own licenses.
 
 | Software | Used for | License | Source |
 |---|---|---|---|

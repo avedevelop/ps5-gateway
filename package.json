@@ -1,17 +1,17 @@
 {
   "name": "ps5-gateway",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Stream your PS5 into OBS over your home network: DNS redirect of the console's Twitch broadcast to your PC, local RTMP relay, OBS scene generator.",
   "private": true,
   "type": "module",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "engines": { "node": ">=22.18" },
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "doctor": "node scripts/doctor.mjs",
     "start": "node scripts/run.mjs start",
     "stop": "node scripts/run.mjs stop",
-    "test": "node --test tests/core.test.mjs",
+    "test": "node --test tests/core.test.mjs tests/doctor-i18n.test.mjs",
     "smoke": "node tests/smoke.mjs"
   },
   "repository": { "type": "git", "url": "git+https://github.com/avedevelop/ps5-gateway.git" }

@@ -29,7 +29,7 @@ function Node-Ok {
   $v = (& node -v).TrimStart('v').Split('.')
   return ([int]$v[0] -gt 22 -or ([int]$v[0] -eq 22 -and [int]$v[1] -ge 18))
 }
-function Is-Admin { ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrator') }
+function Is-Admin { ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) }
 function Run-Node([string[]]$a) { & node @a; if ($LASTEXITCODE -ne 0) { throw "node $($a -join ' ') failed (exit $LASTEXITCODE)" } }
 
 Write-Host 'PS5 Gateway installer (Windows)'
