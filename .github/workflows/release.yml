@@ -1,6 +1,8 @@
 name: Release
 
-# Push a tag like v1.2.0 to publish a release with ready-to-run archives.
+# Push a tag like v1.2.1 to publish a release with ready-to-run archives.
+# Windows and macOS are built and published independently: whichever finishes first appears on the release first,
+# and SHA256SUMS.txt is rebuilt each time, so a slow macOS runner never holds back the Windows archive.
 on:
   push:
     tags: ['v*']
@@ -9,25 +11,8 @@ permissions:
   contents: write
 
 jobs:
-  app-macos:
-    name: Desktop app (macOS, Apple silicon and Intel)
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: app/src-tauri
-      - name: Build PS5 Gateway.app
-        run: sh scripts/build-app.sh --universal
-      - name: Pack the app (keeps permissions and the signature)
-        run: tar -czf app-macos.tar.gz "PS5 Gateway.app"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: app-macos
-          path: app-macos.tar.gz
-
-  app-windows:
-    name: Desktop app (Windows)
+  build-windows:
+    name: Build the app (Windows)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,9 +27,61 @@ jobs:
           name: app-windows
           path: PS5 Gateway.exe
 
-  release:
-    needs: [app-macos, app-windows]
+  publish-windows:
+    name: Publish the Windows archive
+    needs: [build-windows]
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm test
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-windows
+      - name: Build the archive
+        run: |
+          v="${GITHUB_REF_NAME}"
+          mkdir dist stage-win
+          # the project plus the ready PS5 Gateway.exe next to scripts\ (double-click the exe; the installer
+          # installer\windows\Install-PS5-Gateway.cmd is still there)
+          git archive --format=tar --prefix=ps5-gateway/ HEAD | tar -x -C stage-win
+          cp "PS5 Gateway.exe" stage-win/ps5-gateway/
+          (cd stage-win && zip -qr "../dist/ps5-gateway-windows-${v}.zip" ps5-gateway)
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh scripts/ci-publish.sh "dist/ps5-gateway-windows-${GITHUB_REF_NAME}.zip"
+
+  build-macos:
+    name: Build the app (macOS, Apple silicon and Intel)
+    # a fixed image: macos-latest has been short of runners
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+      - name: Build PS5 Gateway.app
+        run: sh scripts/build-app.sh --universal
+      - name: Pack the app (keeps permissions and the signature)
+        run: tar -czf app-macos.tar.gz "PS5 Gateway.app"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-macos
+          path: app-macos.tar.gz
+
+  publish-macos:
+    name: Publish the macOS archive
+    needs: [build-macos]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,28 +91,15 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: app-macos
-      - uses: actions/download-artifact@v4
-        with:
-          name: app-windows
-
-      - name: Build archives
+      - name: Build the archive
         run: |
           v="${GITHUB_REF_NAME}"
           mkdir dist stage
-          # Windows: the project plus the ready PS5 Gateway.exe next to scripts\ (double-click the exe; the installer
-          # installer\windows\Install-PS5-Gateway.cmd is still there)
-          mkdir stage-win
-          git archive --format=tar --prefix=ps5-gateway/ HEAD | tar -x -C stage-win
-          cp "PS5 Gateway.exe" stage-win/ps5-gateway/
-          (cd stage-win && zip -qr "../dist/ps5-gateway-windows-${v}.zip" ps5-gateway)
-          # macOS: the project plus the ready PS5 Gateway.app next to scripts/. A tar.gz keeps the executable bits.
+          # the project plus the ready PS5 Gateway.app next to scripts/. A tar.gz keeps the executable bits.
           git archive --format=tar --prefix=ps5-gateway/ HEAD | tar -x -C stage
           tar -xzf app-macos.tar.gz -C stage/ps5-gateway
           tar -czf "dist/ps5-gateway-macos-${v}.tar.gz" -C stage ps5-gateway
-          (cd dist && sha256sum ./* > SHA256SUMS.txt && cat SHA256SUMS.txt)
-
-      - name: Publish release
+      - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "${GITHUB_REF_NAME}" dist/* --title "PS5 Gateway ${GITHUB_REF_NAME}" --generate-notes
+        run: sh scripts/ci-publish.sh "dist/ps5-gateway-macos-${GITHUB_REF_NAME}.tar.gz"

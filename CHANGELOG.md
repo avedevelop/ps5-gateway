@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1
+
+- **Update buttons.** "Check now" and "Check automatically" in Settings did nothing: a script error stopped the interface from wiring them. Fixed.
+- **Doctor text** no longer runs out of its card on wide windows.
+- **Downloaded app on macOS.** macOS opens a freshly downloaded app from a hidden temporary copy, where the project folder is not next to it, and the installation failed with "Could not install". The app now looks for the `ps5-gateway` folder in Downloads, on the Desktop, in Documents, in the home folder and in Applications, and says what to do when it finds none (all five languages).
+- **Releases.** The Windows and macOS archives are built and published independently, so a slow macOS runner no longer holds back the Windows one; `SHA256SUMS.txt` is rebuilt after each. The macOS build runs on the fixed `macos-15` image.
+
 ## 1.2.0
 
 - **Desktop app for Windows and macOS** (`PS5 Gateway.exe` / `PS5 Gateway.app`, built with Tauri). Guided setup (language, program, PS5 address, installation with progress), a dashboard with the PS5's status and the on-air numbers, settings (basic and advanced), a help section with common problems, a diagnostic report for an AI assistant or the author, and a check/update from GitHub releases. Interface in English, Russian, Ukrainian, German and Spanish. Works with OBS, Streamlabs Desktop or any other program that can take video from an address.
