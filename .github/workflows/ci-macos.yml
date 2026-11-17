@@ -1,0 +1,75 @@
+name: CI (macOS)
+
+# Separate from ci.yml on purpose: GitHub's macOS runners are often in short supply, and a long queue here must not
+# hold back the Windows and Linux results. A fixed image (macos-15) instead of macos-latest.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests (macOS)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm test
+
+  desktop-app:
+    name: Desktop app builds (macOS)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+      - name: Compile the app
+        working-directory: app/src-tauri
+        run: cargo build --release
+
+  smoke:
+    name: Install and run (macOS)
+    needs: [unit]
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # The runner itself plays the PS5: its own LAN address is given as the PS5 address.
+      - name: Installer
+        run: |
+          ip=$(node -e "import('./apps/common/lanip.mjs').then(m=>console.log(m.detectLanIp('')))")
+          echo "runner address: $ip"
+          [ -n "$ip" ] || { echo 'no LAN address on the runner'; exit 1; }
+          sh installer/macos/install.sh --check || true
+          sh installer/macos/install.sh --yes --ps5-ip="$ip" --no-obs --no-scenes
+
+      - name: Smoke test (DNS, ingest, relay)
+        run: node tests/smoke.mjs
+
+      - name: Stop the gateway
+        if: always()
+        run: node scripts/run.mjs stop
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-macos
+          path: logs/
+          if-no-files-found: ignore
