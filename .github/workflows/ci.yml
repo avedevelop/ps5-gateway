@@ -1,5 +1,8 @@
 name: CI
 
+# macOS is checked by its own workflow (ci-macos.yml): its runners are often in short supply, and a long queue there
+# must not hold back the Windows and Linux results.
+
 on:
   push:
     branches: [main]
@@ -19,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [windows-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
@@ -84,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -103,15 +106,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'installer -Check failed' }
           powershell -NoProfile -ExecutionPolicy Bypass -File installer\windows\install.ps1 -Yes -Ps5Ip $ip -SkipFirewall -NoScenes
           if ($LASTEXITCODE -ne 0) { throw 'installer failed' }
-
-      - name: Installer (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          ip=$(node -e "import('./apps/common/lanip.mjs').then(m=>console.log(m.detectLanIp('')))")
-          echo "runner address: $ip"
-          [ -n "$ip" ] || { echo 'no LAN address on the runner'; exit 1; }
-          sh installer/macos/install.sh --check || true
-          sh installer/macos/install.sh --yes --ps5-ip="$ip" --no-obs --no-scenes
 
       - name: Smoke test (DNS, ingest, relay)
         run: node tests/smoke.mjs
