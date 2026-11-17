@@ -25,8 +25,32 @@ fn root() -> PathBuf {
             }
         }
     }
+    // macOS runs a freshly downloaded app from a hidden temporary copy ("App Translocation"), where the project folder
+    // is not next to the program any more: look for it in the usual places instead.
+    if let Some(p) = find_project_nearby() { return p; }
     // development: app/src-tauri -> project root
     std::env::current_dir().map(|d| d.join("../..")).unwrap_or_default()
+}
+
+fn is_project(d: &std::path::Path) -> bool { d.join("scripts").join("start.sh").exists() && d.join("package.json").exists() }
+
+/// A folder named like "ps5-gateway" (or "ps5-gateway-macos-v1.2.0") in Downloads, on the Desktop, in Documents, in the
+/// home folder or in Applications. A configured one (it has a .env) wins, then the most recently changed.
+fn find_project_nearby() -> Option<PathBuf> {
+    let home = PathBuf::from(std::env::var("HOME").or_else(|_| std::env::var("USERPROFILE")).ok()?);
+    let bases = [home.join("Downloads"), home.join("Desktop"), home.join("Documents"), home.clone(), PathBuf::from("/Applications")];
+    let mut found: Vec<(bool, std::time::SystemTime, PathBuf)> = Vec::new();
+    for base in bases.iter() {
+        let Ok(rd) = std::fs::read_dir(base) else { continue };
+        for e in rd.flatten() {
+            let p = e.path();
+            if !e.file_name().to_string_lossy().to_lowercase().starts_with("ps5-gateway") || !is_project(&p) { continue; }
+            let when = std::fs::metadata(p.join("package.json")).and_then(|m| m.modified()).unwrap_or(std::time::UNIX_EPOCH);
+            found.push((p.join(".env").exists(), when, p));
+        }
+    }
+    found.sort_by(|a, b| (b.0, b.1).cmp(&(a.0, a.1)));
+    found.into_iter().next().map(|f| f.2)
 }
 
 fn port() -> u16 {
@@ -158,6 +182,7 @@ fn run_check() -> Result<String, String> { run("node", &["scripts/doctor.mjs"]) 
 #[tauri::command(async)]
 fn run_setup(ps5_ip: String) -> Result<String, String> {
     if !ps5_ip.chars().all(|c| c.is_ascii_digit() || c == '.') { return Err("bad address".into()); }
+    if !is_project(&root()) { return Err("NOFOLDER".into()); }
     *SETUP_PROGRESS.lock().unwrap() = String::new();
     // setup.mjs prints "@@progress {json}" lines while it downloads; the interface reads the latest one with setup_progress()
     let mut child = cmd("node").args(["scripts/setup.mjs", "--yes", &format!("--ps5-ip={ps5_ip}")])
@@ -689,6 +714,7 @@ fn main() {
             }
             Err(e) => println!("status: ERROR {e}"),
         }
+        println!("root: {}", root().display());
         println!("env: {}", read_env());
         println!("apps: {}", detect_apps());
         if std::env::var("PS5GW_SELFTEST_UPDATE").is_ok() {

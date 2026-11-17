@@ -256,6 +256,7 @@
     "найден ✓": "gefunden ✓",
     "не найден": "nicht gefunden",
     "Не получилось": "Hat nicht geklappt",
+    "Не нашли папку ps5-gateway рядом с приложением. Не выносите приложение из папки, а если оно скачано из интернета, один раз выполните в Терминале: xattr -dr com.apple.quarantine ~/Downloads/ps5-gateway": "Der Ordner ps5-gateway wurde neben der App nicht gefunden. Nimm die App nicht aus dem Ordner heraus, und wenn sie aus dem Internet geladen wurde, führe einmal im Terminal aus: xattr -dr com.apple.quarantine ~/Downloads/ps5-gateway",
     "Нажмите «Попробовать снова». Если не выйдет, сделайте отчёт для помощи в Настройках.": "Drücke «Nochmal versuchen». Wenn es nicht klappt, erstelle in den Einstellungen einen Bericht für die Hilfe.",
     "Ссылка для поддержки скоро появится": "Der Link zur Unterstützung kommt bald",
     "Это не похоже на адрес. Пример: 192.168.1.50": "Das sieht nicht nach einer Adresse aus. Beispiel: 192.168.1.50",
