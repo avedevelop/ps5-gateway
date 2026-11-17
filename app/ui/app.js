@@ -186,9 +186,9 @@ async function runCheck() {
   for (const i of items) {
     const row = document.createElement('div');
     const mark = document.createElement('span'); mark.className = 'chk ' + (i.kind === 'ok' ? 'y' : i.kind === 'warn' ? 'w' : 'e'); mark.textContent = i.kind === 'ok' ? '✓' : '!';
-    const body = document.createElement('span'); body.style.color = 'var(--ink)'; body.style.fontSize = '12.5px'; body.textContent = doctorText(i.text);
+    const body = document.createElement('span'); body.style.color = 'var(--ink)'; body.style.fontSize = '12.5px'; body.style.flex = '1'; body.style.minWidth = '0'; body.style.whiteSpace = 'normal'; body.style.overflowWrap = 'anywhere'; body.textContent = doctorText(i.text);
     if (i.fix) { const s = document.createElement('small'); s.style.display = 'block'; s.style.color = 'var(--ink2)'; s.textContent = doctorText(i.fix); body.appendChild(s); }
-    const left = document.createElement('span'); left.style.display = 'flex'; left.style.gap = '8px'; left.style.alignItems = 'flex-start'; left.append(mark, body);
+    const left = document.createElement('span'); left.style.display = 'flex'; left.style.gap = '8px'; left.style.alignItems = 'flex-start'; left.style.minWidth = '0'; left.style.whiteSpace = 'normal'; left.append(mark, body);
     row.appendChild(left); list.appendChild(row);
   }
   return items;
@@ -288,6 +288,8 @@ async function install() {
       $('#ob4-p').textContent = fwErr === 'cancelled' ? 'Windows спрашивает разрешение, чтобы PS5 могла связаться со шлюзом. Нажмите «Попробовать снова» и выберите «Да».' : 'Не удалось настроить брандмауэр: ' + fwErr;
     } else if (String(e).includes('cannot run node')) {
       $('#ob4-h').textContent = 'Нужен Node.js'; $('#ob4-p').textContent = 'Установите Node.js 24 LTS с nodejs.org, затем откройте приложение снова: на нём работает шлюз.';
+    } else if (String(e).includes('NOFOLDER')) {
+      $('#ob4-p').textContent = 'Не нашли папку ps5-gateway рядом с приложением. Не выносите приложение из папки, а если оно скачано из интернета, один раз выполните в Терминале: xattr -dr com.apple.quarantine ~/Downloads/ps5-gateway';
     } else $('#ob4-p').textContent = 'Нажмите «Попробовать снова». Если не выйдет, сделайте отчёт для помощи в Настройках.';
   }
 }
@@ -464,7 +466,7 @@ bindSeg('#seg-refresh', prefVal('refresh', '1500') === '1500' ? '2000' : prefVal
 const TRAY = { ru: ['Открыть', 'Выйти'], en: ['Open', 'Quit'], uk: ['Відкрити', 'Вийти'], de: ['Öffnen', 'Beenden'], es: ['Abrir', 'Salir'] };
 const syncTray = () => { const t = TRAY[prefVal('lang', 'ru')] || TRAY.ru; invoke('tray_labels', { open: t[0], quit: t[1] }).catch(() => {}); };
 syncTray();
-$('.sel-lang').forEach((sel) => { sel.value = prefVal('lang', 'ru'); sel.onchange = () => { setVal('lang', sel.value); $('.sel-lang').forEach((o) => (o.value = sel.value)); if (typeof applyLang === 'function') applyLang(); syncTray(); }; });
+$$('.sel-lang').forEach((sel) => { sel.value = prefVal('lang', 'ru'); sel.onchange = () => { setVal('lang', sel.value); $$('.sel-lang').forEach((o) => (o.value = sel.value)); if (typeof applyLang === 'function') applyLang(); syncTray(); }; });
 
 async function saveEnv(key, value, field, note) {
   if (!validIp(value) && !(key === 'PC_LAN_IP' && value === '')) { field.classList.add('bad'); return toast('Это не похоже на адрес. Пример: 192.168.1.50'); }
