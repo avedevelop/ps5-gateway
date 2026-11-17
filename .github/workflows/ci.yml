@@ -27,6 +27,27 @@ jobs:
           node-version: 24
       - run: npm test
 
+  desktop-app:
+    name: Desktop app builds (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+      - name: Compile the app
+        working-directory: app/src-tauri
+        run: cargo build --release
+      - name: Check the interface scripts
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node -e "for (const f of ['app','os','i18n','i18n-doctor','strings/ru','strings/en','strings/uk','strings/de','strings/es']) new Function(require('fs').readFileSync('app/ui/' + f + '.js','utf8'))"
+
   lint-shell:
     name: Shell scripts
     runs-on: ubuntu-latest

@@ -24,3 +24,16 @@ node_modules/
 /assets/
 /samples/
 /recordings/
+
+# desktop app: build output and generated files
+app/src-tauri/target/
+app/src-tauri/gen/
+.DS_Store
+/PS5 Gateway.app/
+/PS5 Gateway.exe
+
+# the old program next to a new one during an update
+/PS5 Gateway.new.exe
+
+# internal design notes: kept outside the repository
+/docs/superpowers/

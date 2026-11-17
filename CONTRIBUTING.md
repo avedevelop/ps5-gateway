@@ -64,4 +64,4 @@ Plain modern JavaScript (ES modules) and TypeScript that Node can run by strippi
 
 ## License
 
-By contributing you agree that your work is released under the [PolyForm Noncommercial License 1.0.0](LICENSE), the same as the project.
+By contributing you agree that your work is released under the [MIT License](LICENSE), the same as the project.

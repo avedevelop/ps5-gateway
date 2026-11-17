@@ -4,8 +4,9 @@
 $root = Split-Path -Parent $PSScriptRoot
 $node = (Get-Command node).Source
 $dir  = Join-Path $root 'apps\orchestrator'
-$act  = New-ScheduledTaskAction -Execute 'powershell.exe' `
-  -Argument "-NoProfile -WindowStyle Hidden -Command `"Set-Location '$dir'; & '$node' src/index.ts`"" -WorkingDirectory $dir
+# wscript runs the small launcher with no window at all (a hidden powershell.exe would flash a console at every login)
+$vbs  = Join-Path $PSScriptRoot 'autostart.vbs'
+$act  = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument "//B //nologo `"$vbs`" `"$node`"" -WorkingDirectory $dir
 $trg  = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $set  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable `
   -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero)

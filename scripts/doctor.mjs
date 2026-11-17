@@ -69,6 +69,17 @@ if (MAC) {
   } catch { /* cannot tell */ }
 }
 
+// --- Windows firewall: the PS5 must be allowed to reach DNS (53) and RTMP (1935); scripts\\firewall.ps1 creates the rules
+if (WIN) {
+  try {
+    const q = "$on=@(Get-NetFirewallProfile | Where-Object Enabled).Count; $r=@(Get-NetFirewallRule -DisplayName 'ps5gw-dns','ps5gw-dnst','ps5gw-rtmp' -ErrorAction SilentlyContinue | Where-Object Enabled -eq True); $a=@(($r | Get-NetFirewallAddressFilter).RemoteAddress | Select-Object -Unique) -join ','; \"$on|$($r.Count)|$a\"";
+    const [on, n, addr] = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', q], { encoding: 'utf8', windowsHide: true }).trim().split('|');
+    if (Number(on) === 0) ok('Windows firewall is off (nothing to allow)');
+    else if (Number(n) >= 3 && addr === ps5) ok('Windows firewall rules for the PS5 exist (ps5gw-*)');
+    else warn('Windows firewall may block the PS5: the rules are missing or point to another address', 'run scripts\\firewall.ps1 as Administrator (the app does this during setup)');
+  } catch { /* cannot tell */ }
+}
+
 // --- OBS
 const obsDir = obsScenesDir();
 existsSync(join(obsDir, 'PS5.json')) ? ok('OBS scene collection "PS5" exists') : warn('OBS scene collection "PS5" not created yet', `node scripts/make-obs-scenes.mjs ${pc || '<PC IP>'} <twitch login>`);

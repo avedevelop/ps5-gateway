@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0
+
+- **Desktop app for Windows and macOS** (`PS5 Gateway.exe` / `PS5 Gateway.app`, built with Tauri). Guided setup (language, program, PS5 address, installation with progress), a dashboard with the PS5's status and the on-air numbers, settings (basic and advanced), a help section with common problems, a diagnostic report for an AI assistant or the author, and a check/update from GitHub releases. Interface in English, Russian, Ukrainian, German and Spanish. Works with OBS, Streamlabs Desktop or any other program that can take video from an address.
+- **Updates.** The app looks at the latest release and, on request, downloads the archive, verifies its SHA-256 against `SHA256SUMS.txt` and replaces the project files, keeping `.env`, `bin/` and `logs/`. The interface is read from `app/ui` in the project folder, so a restart brings the new interface.
+- **Release builds.** A `v*` tag now also builds a universal (Apple silicon and Intel) `PS5 Gateway.app` and puts it into the macOS archive. `scripts/build-app.sh` and `scripts/build-app.ps1` build the app locally. CI compiles the app on macOS and Windows on every change.
+- **New optional settings in `.env`:** `UPSTREAM_DNS` (DNS servers for everything except the PS5's Twitch address), `KEEP_AWAKE=0` (let the Mac sleep during a broadcast), `DNS_CACHE_TTL` (seconds) and `MTX_LOG_LEVEL` (`error`, `warn`, `info`, `debug`). Defaults keep the old behaviour.
+- **License changed from PolyForm Noncommercial 1.0.0 to MIT.** Commercial use is now allowed. Versions 1.0.0 and 1.1.0 stay under PolyForm Noncommercial for the copies already published.
+- **Windows app.** Every command has a Windows branch: scripts, OBS (also the Steam copy) and Streamlabs detection, any other program through its Start-menu shortcut, notifications, diagnostics, updates. The release archive for Windows now contains `PS5 Gateway.exe` next to `scripts\`. Setup shows real download progress and asks Windows once for permission to create the firewall rules (only your PS5 may reach the gateway). Autostart no longer flashes a window.
+- **Tray / menu bar.** Closing the window hides it; the gateway keeps running. One copy of the app at a time.
+- **PS5 on the wrong DNS.** Home warns when the PS5 answers pings but never asks the gateway, and says to restart the console completely. The gateway status and the report list the last names the PS5 asked about.
+- **Keep awake on Windows too** while the PS5 broadcasts (`KEEP_AWAKE=0` still turns it off), and the interface says "computer" instead of "Mac" on Windows. Interface texts are split by system.
+- **Strings** now live in one file per language (`app/ui/strings/`). Every line of the system check has a translation in all languages (guarded by a test); `doctor` also checks the Windows firewall rules.
+- **Report:** *Save to a file* puts it on the Desktop.
+- **Guides** for Windows and macOS with pictures (`docs/WINDOWS.md`, `docs/MACOS.md`, also in Russian), made by `tools/screenshots.mjs`.
+
 ## 1.1.0
 
 - **One-click installers** for Windows (`installer\windows\Install-PS5-Gateway.cmd`) and macOS (`installer/macos/Install PS5 Gateway.command`): check Node.js, FFmpeg and OBS, download the helper programs, create `.env`, set up the Windows firewall, start the gateway, run `doctor` and create the OBS scene. `-Check` / `--check` only report.

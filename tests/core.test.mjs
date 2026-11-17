@@ -46,7 +46,7 @@ test('.env.example lists the keys the code reads and holds no secrets', () => {
 });
 
 // ---------- platform differences (apps/common/platform.mjs) ----------
-import { exeName, pingArgs, obsScenesDir, renderConfig } from '../apps/common/platform.mjs';
+import { exeName, pingArgs, obsScenesDir, renderConfig, parseUpstream, parseCacheTtl, parseLogLevel } from '../apps/common/platform.mjs';
 const tpl = (f) => readFileSync(join(ROOT, 'config', `${f}.tpl`), 'utf8');
 const IPS = { pcIp: '192.168.1.20', ps5Ip: '192.168.1.50' };
 
@@ -120,4 +120,27 @@ test('installers exist for both systems and the mac ones are executable', async 
   if (process.platform !== 'win32')
     for (const f of ['installer/macos/install.sh', 'installer/macos/Install PS5 Gateway.command', 'scripts/start.sh', 'scripts/stop.sh', 'scripts/install-autostart.sh'])
       assert.ok(statSync(join(ROOT, f)).mode & 0o100, `${f} must be executable`);
+});
+
+test('UPSTREAM_DNS: valid resolvers go into the Corefile, anything else falls back to the default', () => {
+  assert.equal(parseUpstream('9.9.9.9, 149.112.112.112'), '9.9.9.9 149.112.112.112');
+  assert.equal(parseUpstream(''), '1.1.1.1 8.8.8.8');
+  assert.equal(parseUpstream('dns.google'), '1.1.1.1 8.8.8.8');
+  assert.equal(parseUpstream('1.1.1.1 300.1.1.1'), '1.1.1.1 8.8.8.8');
+  assert.equal(parseUpstream('1.1.1.1 2.2.2.2 3.3.3.3 4.4.4.4 5.5.5.5'), '1.1.1.1 8.8.8.8');
+  const core = renderConfig('Corefile', tpl('Corefile'), { ...IPS, win: false, upstream: '9.9.9.9' });
+  assert.match(core, /forward \. 9\.9\.9\.9\n/);
+  assert.match(renderConfig('Corefile', tpl('Corefile'), { ...IPS, win: true }), /forward \. 1\.1\.1\.1 8\.8\.8\.8\n/);
+});
+
+test('DNS_CACHE_TTL and MTX_LOG_LEVEL: valid values are applied, anything else keeps the defaults', () => {
+  assert.equal(parseCacheTtl('120'), '120');
+  assert.equal(parseCacheTtl('0'), '0');
+  assert.equal(parseCacheTtl('99999'), '30');
+  assert.equal(parseCacheTtl('abc'), '30');
+  assert.equal(parseLogLevel('Info'), 'info');
+  assert.equal(parseLogLevel('loud'), 'debug');
+  assert.match(renderConfig('Corefile', tpl('Corefile'), { ...IPS, win: false, cacheTtl: '300' }), /\n\s+cache 300\n/);
+  assert.match(renderConfig('mediamtx.yml', tpl('mediamtx.yml'), { ...IPS, win: true, logLevel: 'warn' }), /^logLevel: warn$/m);
+  assert.match(renderConfig('Corefile', tpl('Corefile'), { ...IPS, win: true }), /\n\s+cache 30\n/);
 });

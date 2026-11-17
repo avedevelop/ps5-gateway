@@ -4,7 +4,7 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\firewall.ps1 -Ps5Ip 192.168.1.50 -NoPanel
 param([string]$Ps5Ip, [switch]$NoPanel)
 $root = Split-Path -Parent $PSScriptRoot
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrator')) {
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   Write-Host 'Run this from an Administrator PowerShell (right-click Start > Terminal (Admin)).'; exit 1 }
 if (-not $Ps5Ip) {
   $envFile = Join-Path $root '.env'
