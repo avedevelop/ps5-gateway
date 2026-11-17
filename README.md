@@ -114,24 +114,14 @@ The release archives contain a small app on top of the gateway: **PS5 Gateway.ex
 - **Updates:** Settings > Updates checks the latest release (it only contacts GitHub, nothing about you is sent) and replaces the files in place. Your settings, downloads and logs are kept.
 - **Build it yourself:** `scripts\build-app.ps1` on Windows or `sh scripts/build-app.sh` on a Mac, with [Rust](https://rustup.rs) installed. For development run `sh app/dev.sh` (macOS). The pictures in the docs are made by `node tools/screenshots.mjs`.
 
-The older local web dashboard stays available at `http://127.0.0.1:8787`.
-
-## Web dashboard
-
-A small local dashboard at `http://127.0.0.1:8787` shows whether the PS5 is broadcasting, relay health, and restart buttons for the services. It speaks English, Russian, Ukrainian, German and Spanish.
-
-<div align="center">
-<img src="docs/assets/dashboard.png" alt="PS5 Gateway dashboard" width="620">
-<br>
-<sub>Illustrative state with placeholder addresses.</sub>
-</div>
+The older local web page stays available at `http://127.0.0.1:8787` (the PS5's status, relay health and restart buttons for the services). It speaks the same five languages. The app is the main way to use the gateway.
 
 ## What is included
 
 - **One-click installers** for Windows and macOS, tested by CI on both systems on every change: the CI installs the gateway on fresh Windows and macOS machines, sends a test stream and checks that it arrives at the address OBS reads.
 - **Setup** with pinned, checksum-verified downloads and automatic LAN address detection.
 - **`doctor`** that checks files, addresses, name-resolution speed, the DNS redirect, the RTMP port and the PS5's activity, and prints a fix for every problem it finds.
-- **Desktop app** (Windows and macOS) with guided setup, settings, help and updates. **Web dashboard** with live relay stats and service restarts.
+- **Desktop app** (Windows and macOS) with guided setup, settings, help and updates. A **local web page** at `127.0.0.1:8787` with live relay stats and service restarts.
 - **OBS scene generator** that writes a `PS5` collection with one scene, the PS5 source already fitted to the canvas and set to reconnect by itself.
 - **PS5-only access.** On Windows a firewall script opens DNS and RTMP for the PS5 only; on macOS the gateway itself answers only the PS5 and your Mac.
 - **Optional autostart** at login (Windows scheduled task, macOS LaunchAgent).
